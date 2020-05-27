@@ -54,7 +54,7 @@ CUDA_LINK_FLAGS = -dlink -Wno-deprecated-gpu-targets
 GPP = g++
 FLAGS = -g -w -D_REENTRANT -std=c++0x -pthread
 INCLUDE = -I$(CUDA_INC_PATH) -I$(INCLUDEDIR)
-LIBS = -L$(CUDA_LIB_PATH) -lcudart -lcufft -lsndfile
+LIBS = -L$(CUDA_LIB_PATH) -lcudart 
 
 # ------------------------------------------------------------------------------
 # Make Rules 
