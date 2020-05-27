@@ -5,7 +5,7 @@ This projects aims to parallelize the Monte Carlo simulation of the test statist
 
 The following 2 scenarios are implemented: 
 
-### Neyman-Pearson hypothesis testing
+### 1. Neyman-Pearson hypothesis testing
 The alternative hypothesis is explicitly required, ie, signal templated needs to be provided.
 
 How to run: 
@@ -18,7 +18,7 @@ How to run:
                      <output file> 
 ```
 
-### Improved chisquare goodness-of-fit testing
+### 2. Improved chisquare goodness-of-fit testing
 The saturated model is used as the alternative hypothesis, therefore no signal template is required.
 
 How to run:
