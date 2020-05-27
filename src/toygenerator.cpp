@@ -215,7 +215,7 @@ int frequentist_test(int argc, char **argv){
     int *maxGridSize = prop.maxGridSize;
 
     // Determine number of blocks 
-    int nBlocks = floor(ntoys/threadsPerBlock);
+    int nBlocks = ceil(ntoys/threadsPerBlock);
     int trialsPerThread = 1;
     if (nBlocks > maxGridSize[0]) 
     {
@@ -226,7 +226,6 @@ int frequentist_test(int argc, char **argv){
     // Allocate space for prng states on device
     CUDA_CALL(cudaMalloc((void **) &devStates, nBlocks * threadsPerBlock * sizeof(curandState)));
     
-    std::cout << "Doing the same on GPU...\n";
     // Generating toys
     START_TIMER();
     

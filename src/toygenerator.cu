@@ -16,14 +16,15 @@ void generate_goodness_of_fit_toys(float * dev_bkg_expected,
                                    curandState *states,
                                    int trialsPerThread)
 {
-    unsigned int tid = threadIdx.x + blockDim.x * blockIdx.x;
     int toy;
+    unsigned int tid;
     float sum_log_likelihood;
-    curand_init(42, tid, 0, &states[tid]); // Initialize CURAND
     for (int trial = 0; trial < trialsPerThread; trial++)
     {
-        if ((trial+1) * tid < ntoys)
-            {
+        tid = threadIdx.x + blockDim.x * blockIdx.x;
+        while ((trial+1) * tid < ntoys)
+        {
+            curand_init(42+trial, tid, 0, &states[tid]); 
             sum_log_likelihood = 0;
             for (int bin = 0; bin < n_bins; bin++)
             {
@@ -31,6 +32,7 @@ void generate_goodness_of_fit_toys(float * dev_bkg_expected,
                 sum_log_likelihood += chisquare(dev_bkg_expected[bin], toy);
             }
             dev_q_toys[tid * (trial+1)] = sum_log_likelihood;
+            tid += blockDim.x * gridDim.x;
         }
     }
 }
@@ -45,14 +47,15 @@ void generate_neyman_pearson_toys(float * dev_bkg_expected,
                                    curandState *states,
                                    int trialsPerThread)
 {
-    unsigned int tid = threadIdx.x + blockDim.x * blockIdx.x;
     int toy;
+    unsigned int tid;
     float sum_log_likelihood, numerator, denominator;
-    curand_init(42, tid, 0, &states[tid]); // Initialize CURAND
     for (int trial = 0; trial < trialsPerThread; trial++)
     {
-        if ((trial+1) * tid < ntoys)
+        tid = threadIdx.x + blockDim.x * blockIdx.x;
+        while ((trial+1) * tid < ntoys)
         {
+            curand_init(42+trial, tid, 0, &states[tid]); // Initialize CURAND
             sum_log_likelihood = 0;
             for (int bin = 0; bin < n_bins; bin++)
             {
@@ -62,6 +65,7 @@ void generate_neyman_pearson_toys(float * dev_bkg_expected,
                 sum_log_likelihood += -2 * numerator/denominator;
             }
             dev_q_toys[tid * (trial+1)] = sum_log_likelihood;
+            tid += blockDim.x * gridDim.x;
         }
     }
 }
@@ -76,6 +80,7 @@ void cuda_call_generate_goodness_of_fit_toys(int nBlocks,
                                             curandState * devStates,
                                             int trialsPerThread)
 {
+    printf("Doing the same on GPU using %d blocks and %d threads per block\n", nBlocks, threadsPerBlock);
     generate_goodness_of_fit_toys<<<nBlocks, threadsPerBlock>>>(dev_bkg_expected, 
                                                                dev_obs_data,
                                                                dev_q_toys,
@@ -97,6 +102,7 @@ void cuda_call_generate_neyman_pearson_toys(int nBlocks,
                                            curandState * devStates,
                                            int trialsPerThread)
 {
+    printf("Doing the same on GPU using %d blocks and %d threads per block\n", nBlocks, threadsPerBlock);
     generate_neyman_pearson_toys<<<nBlocks, threadsPerBlock>>>(dev_bkg_expected, 
                                                                dev_sig_expected,
                                                                dev_obs_data,
