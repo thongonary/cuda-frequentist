@@ -6,19 +6,30 @@ This projects aims to parallelize the Monte Carlo simulation of the test statist
 I implemented 2 scenarios: 
 
 1. Neyman-Pearson hypothesis testing, where the alternative hypothesis is explicitly required, ie, signal templated needs to be provided.
+
 How to run: 
-    ./neyman-pearson <number of bins> <background template file> <signal template file> <observed data file> <number of toys> <output file> 
-Demo code:
-    ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7 test.out
+```
+    ./neyman-pearson <number of bins> \
+                     <background template file> \
+                     <signal template file> \
+                     <observed data file> \
+                     <number of toys> \
+                     <output file> 
+```
 
 2. Improved chisquare goodness-of-fit testing, where the saturated model is used as the alternative hypothesis, therefore no signal template is required.
+
 How to run:
-    ./goodness-of-fit <number of bins> <background template file> <observed data file> <number of toys> <output file>
-Demo code:
-    ./goodness-of-fit 20 resources/background_template.txt resources/observed_data.txt 1e6 test.out
+```
+    ./goodness-of-fit <number of bins> \
+                      <background template file> \
+                      <observed data file> \
+                      <number of toys> \
+                      <output file>
+```
 
-Expected output on Titan:
-
+Example code and output:
+```
 $ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7 test.out
 Reading 20 bins from background file resources/background_template.txt
 Reading 20 bins from data file resources/background_template.txt
@@ -28,8 +39,8 @@ Generating 1e+07 toy experiments to obtain the test statistics distribution
 p-value from Neyman-Pearson hypothesis test: less than 1e-07
 Saving the toy experiments' test statistics to test.out.cpu
   ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 1.9 MHz | 5s<0s]
-
-
+```
+```
 $ ./goodness-of-fit 20 resources/background_template.txt resources/observed_data.txt 1e6 test.out
 Reading 20 bins from background file resources/background_template.txt
 Reading 20 bins from data file resources/background_template.txt
@@ -38,3 +49,4 @@ Generating 1e+06 toy experiments to obtain the test statistics distribution
 p-value from Goodness-of-fit test: 0.003805
 Saving the toy experiments' test statistics to test.out.cpu
   ████████████████████████████████████████▏ 100.0% [1000000/1000000 | 1.9 MHz | 1s<0s]
+```
