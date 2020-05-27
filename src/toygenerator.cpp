@@ -13,29 +13,12 @@
 
 #include "tqdm.h"
 #include "toygenerator.cuh"
-#include "ta_utilities.hpp"
 #include "equations.hpp"
+#include "helper_cuda.h"
 
 using std::cerr;
 using std::cout;
 using std::endl;
-
-
-/*
-Modified from:
-http://stackoverflow.com/questions/14038589/
-what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
-*/
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-    if (code != cudaSuccess) 
-    {
-        fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-        exit(code);
-    }
-}
-
 
 void check_args(int argc, char **argv){
     
@@ -65,17 +48,17 @@ int frequentist_test(int argc, char **argv){
     float gpu_time_ms = -1;
 
     #define START_TIMER() {                         \
-          gpuErrchk(cudaEventCreate(&start));       \
-          gpuErrchk(cudaEventCreate(&stop));        \
-          gpuErrchk(cudaEventRecord(start));        \
+          CUDA_CALL(cudaEventCreate(&start));       \
+          CUDA_CALL(cudaEventCreate(&stop));        \
+          CUDA_CALL(cudaEventRecord(start));        \
         }
 
     #define STOP_RECORD_TIMER(name) {                           \
-          gpuErrchk(cudaEventRecord(stop));                     \
-          gpuErrchk(cudaEventSynchronize(stop));                \
-          gpuErrchk(cudaEventElapsedTime(&name, start, stop));  \
-          gpuErrchk(cudaEventDestroy(start));                   \
-          gpuErrchk(cudaEventDestroy(stop));                    \
+          CUDA_CALL(cudaEventRecord(stop));                     \
+          CUDA_CALL(cudaEventSynchronize(stop));                \
+          CUDA_CALL(cudaEventElapsedTime(&name, start, stop));  \
+          CUDA_CALL(cudaEventDestroy(start));                   \
+          CUDA_CALL(cudaEventDestroy(stop));                    \
         }
 
 
@@ -206,28 +189,28 @@ int frequentist_test(int argc, char **argv){
     //                GPU IMPLEMENTATION
     // ******************************************************
     float *dev_bkg_expected;
-    gpuErrchk(cudaMalloc((void **) &dev_bkg_expected, n_bins * sizeof(float)));
+    CUDA_CALL(cudaMalloc((void **) &dev_bkg_expected, n_bins * sizeof(float)));
     float *dev_obs_data;
-    gpuErrchk(cudaMalloc((void **) &dev_obs_data, n_bins * sizeof(float)));
+    CUDA_CALL(cudaMalloc((void **) &dev_obs_data, n_bins * sizeof(float)));
     float *dev_q_toys;
-    gpuErrchk(cudaMalloc((void **) &dev_q_toys, ntoys * sizeof(float)));
+    CUDA_CALL(cudaMalloc((void **) &dev_q_toys, ntoys * sizeof(float)));
 
     #if GOF==0
         float *dev_sig_expected;
-        gpuErrchk(cudaMalloc((void **) &dev_sig_expected, n_bins * sizeof(float)));
+        CUDA_CALL(cudaMalloc((void **) &dev_sig_expected, n_bins * sizeof(float)));
     #endif
     
     START_TIMER();
-    gpuErrchk(cudaMemcpy(dev_bkg_expected, bkg_expected, 
+    CUDA_CALL(cudaMemcpy(dev_bkg_expected, bkg_expected, 
             n_bins * sizeof(float), cudaMemcpyHostToDevice));
-    gpuErrchk(cudaMemcpy(dev_obs_data, obs_data, 
+    CUDA_CALL(cudaMemcpy(dev_obs_data, obs_data, 
             n_bins * sizeof(float), cudaMemcpyHostToDevice));
     #if GOF==0
-    gpuErrchk(cudaMemcpy(dev_sig_expected, sig_expected, 
+    CUDA_CALL(cudaMemcpy(dev_sig_expected, sig_expected, 
             n_bins * sizeof(float), cudaMemcpyHostToDevice));
     #endif
     
-    gpuErrchk(cudaMemset(dev_q_toys, 0, 
+    CUDA_CALL(cudaMemset(dev_q_toys, 0, 
                 ntoys * sizeof(float)));
 
 
@@ -265,9 +248,6 @@ int frequentist_test(int argc, char **argv){
 
 
 int main(int argc, char **argv){
-    TA_Utilities::select_coldest_GPU();
-    //int max_time_allowed_in_seconds = 500;
-    //TA_Utilities::enforce_time_limit(max_time_allowed_in_seconds);
     return frequentist_test(argc, argv);
 }
 
