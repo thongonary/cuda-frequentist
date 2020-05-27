@@ -1,11 +1,12 @@
+# GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Hypothesis Testing
 Thong Nguyen
-Final Project CPU demo
 
-This projects aims to parallelize the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing.
+This projects aims to parallelize the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing using CUDA.
 
-I implemented 2 scenarios: 
+The following 2 scenarios are implemented: 
 
-1. Neyman-Pearson hypothesis testing, where the alternative hypothesis is explicitly required, ie, signal templated needs to be provided.
+### Neyman-Pearson hypothesis testing
+The alternative hypothesis is explicitly required, ie, signal templated needs to be provided.
 
 How to run: 
 ```
@@ -17,7 +18,8 @@ How to run:
                      <output file> 
 ```
 
-2. Improved chisquare goodness-of-fit testing, where the saturated model is used as the alternative hypothesis, therefore no signal template is required.
+### Improved chisquare goodness-of-fit testing
+The saturated model is used as the alternative hypothesis, therefore no signal template is required.
 
 How to run:
 ```
@@ -28,7 +30,7 @@ How to run:
                       <output file>
 ```
 
-Example code and output:
+## Example running commands and outputs
 ```
 $ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7 test.out
 Reading 20 bins from background file resources/background_template.txt
