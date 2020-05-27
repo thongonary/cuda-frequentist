@@ -33,6 +33,7 @@ How to run:
 ### Example running commands and outputs
 ```
 $ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7 test.out
+
 Reading 20 bins from background file resources/background_template.txt
 Reading 20 bins from data file resources/background_template.txt
 Reading 20 bins from signal file resources/background_template.txt
@@ -44,6 +45,7 @@ Saving the toy experiments' test statistics to test.out.cpu
 ```
 ```
 $ ./goodness-of-fit 20 resources/background_template.txt resources/observed_data.txt 1e6 test.out
+
 Reading 20 bins from background file resources/background_template.txt
 Reading 20 bins from data file resources/background_template.txt
 Generating 1e+06 toy experiments to obtain the test statistics distribution
