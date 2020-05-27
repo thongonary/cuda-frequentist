@@ -1,5 +1,5 @@
-# GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Hypothesis Testing
-Thong Nguyen
+## GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Hypothesis Testing
+
 
 This projects aims to parallelize the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing using CUDA.
 
@@ -30,7 +30,7 @@ How to run:
                       <output file>
 ```
 
-## Example running commands and outputs
+### Example running commands and outputs
 ```
 $ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7 test.out
 Reading 20 bins from background file resources/background_template.txt
