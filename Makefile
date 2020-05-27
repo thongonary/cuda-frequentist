@@ -10,7 +10,7 @@ CPP_FILES = src/toygenerator.cpp src/ta_utilities.cpp src/equations.cpp
 # Directory names
 INCLUDEDIR = include
 OBJDIR = obj
-
+$(shell mkdir -p $(OBJDIR))
 # ------------------------------------------------------------------------------
 
 # CUDA Compiler and Flags
