@@ -1,7 +1,7 @@
 ## GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Hypothesis Testing
 
 
-This projects aims to parallelize the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing using CUDA.
+This projects aims to parallelize the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA.
 
 The following 2 scenarios are implemented: 
 
