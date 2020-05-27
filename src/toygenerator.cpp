@@ -316,7 +316,7 @@ int frequentist_test(int argc, char **argv){
     std::cout << "+ On CPU: " << cpu_time_ms << " ms\n";
     std::cout << "+ On GPU: " << gpu_time_ms << " ms\n";
     float speed_up = cpu_time_ms/gpu_time_ms;
-    printf("Gain a %.0f-time speedup with GPU\n", speed_up);
+    printf("Gained a %.0f-time speedup with GPU\n", speed_up);
     
     // Free memory on GPU
     cudaFree(dev_q_toys);
