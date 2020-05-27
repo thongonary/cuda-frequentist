@@ -5,7 +5,86 @@
 #ifndef CUDA_TOY_GENERATOR_CUH
 #define CUDA_TOY_GENERATOR_CUH
 
+#define PI 3.14159265358979
 
-void cudaRandomGeneratorKernel(const float *raw_data);
+// Stirling approxmination of log(x!)
+__inline__ __device__
+float stirling_approx(int x)
+{
+    return (x + 0.5) * __logf(x) - x + 0.5 * __logf(2*PI); 
+}
+
+// Computation of x!, use only when x < 20
+__inline__ __device__
+unsigned long long factorial(int x)
+{
+    unsigned long long result = 1;
+    for (int i = 1; i <= x; i++)
+        result *= i;
+
+    return result;
+}
+
+__inline__ __device__
+float log_factorial_approx(int a)
+{
+    // Use Stirling approximation for larger number
+    if (a > 20) return stirling_approx(a);
+    else return __logf(factorial(a));
+}
+
+__inline__ __device__
+float log_poisson(float mu, int k)
+{
+    // Log likelihood of poisson distribution with mean mu
+    return - mu - log_factorial_approx(k) + k * __logf(mu);
+}
+
+__inline__ __device__
+float chisquare(float exp, int obs)
+{
+    return -2 * (exp - obs + __logf(obs/exp));
+}
+
+__global__
+void generate_goodness_of_fit_toys(float * dev_bkg_expected, 
+                                   float * dev_obs_data,
+                                   float * dev_q_toys,
+                                   int n_bins,
+                                   int ntoys,
+                                   curandState *states,
+                                   int trialsPerThread);
+
+
+__global__
+void generate_neyman_pearson_toys(float * dev_bkg_expected, 
+                                   float * dev_sig_expected,
+                                   float * dev_obs_data,
+                                   float * dev_q_toys,
+                                   int n_bins,
+                                   int ntoys,
+                                   curandState *states,
+                                   int trialsPerThread);
+
+void cuda_call_generate_goodness_of_fit_toys(int nBlocks,
+                                            int threadsPerBlock,
+                                            float * dev_bkg_expected, 
+                                            float * dev_obs_data,
+                                            float * dev_q_toys,
+                                            int n_bins,
+                                            int ntoys,
+                                            curandState * devStates,
+                                            int trialsPerThread);
+
+void cuda_call_generate_neyman_pearson_toys(int nBlocks,
+                                           int threadsPerBlock,
+                                           float * dev_bkg_expected, 
+                                           float * dev_sig_expected,
+                                           float * dev_obs_data,
+                                           float * dev_q_toys,
+                                           int n_bins,
+                                           int ntoys,
+                                           curandState * devStates,
+                                           int trialsPerThread);
 
 #endif

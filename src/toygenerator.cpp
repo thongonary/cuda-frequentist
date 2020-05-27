@@ -7,9 +7,12 @@
 #include <iostream>
 #include <random>
 
-#include <cuda_runtime.h>
 #include <algorithm>
 #include <cassert>
+
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <curand_kernel.h>
 
 #include "tqdm.h"
 #include "toygenerator.cuh"
@@ -160,9 +163,8 @@ int frequentist_test(int argc, char **argv){
     
     // Generating toy Monte Carlo for test statistics
     int toy;
-    int larger = 0;
     float *q_toys = (float*) malloc(sizeof(float) * ntoys);
-    std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution" << std::endl;
+    std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on CPU" << std::endl;
     tqdm bar;
     for (int experiment = 0; experiment < ntoys; experiment++)
     {
@@ -179,7 +181,6 @@ int frequentist_test(int argc, char **argv){
                 q_toys[experiment] += -2 * numerator/denominator;
             #endif
         }
-        if (q_toys[experiment] > q_obs) larger++;
     }
     bar.finish();
     STOP_RECORD_TIMER(cpu_time_ms);
@@ -188,19 +189,48 @@ int frequentist_test(int argc, char **argv){
     // ******************************************************
     //                GPU IMPLEMENTATION
     // ******************************************************
+    
+    // Allocate space for input data on device
     float *dev_bkg_expected;
     CUDA_CALL(cudaMalloc((void **) &dev_bkg_expected, n_bins * sizeof(float)));
     float *dev_obs_data;
     CUDA_CALL(cudaMalloc((void **) &dev_obs_data, n_bins * sizeof(float)));
     float *dev_q_toys;
     CUDA_CALL(cudaMalloc((void **) &dev_q_toys, ntoys * sizeof(float)));
+    curandState *devStates;
+    float *host_q_toys = (float*) malloc(sizeof(float) * ntoys);
+
 
     #if GOF==0
         float *dev_sig_expected;
         CUDA_CALL(cudaMalloc((void **) &dev_sig_expected, n_bins * sizeof(float)));
     #endif
     
+    // Getting CUDA attributes
+    int device;
+    CUDA_CALL(cudaGetDevice(&device));
+    cudaDeviceProp prop;
+    CUDA_CALL(cudaGetDeviceProperties(&prop, device));
+    int threadsPerBlock = prop.maxThreadsPerBlock;
+    int *maxGridSize = prop.maxGridSize;
+
+    // Determine number of blocks 
+    int nBlocks = floor(ntoys/threadsPerBlock);
+    int trialsPerThread = 1;
+    if (nBlocks > maxGridSize[0]) 
+    {
+        trialsPerThread = ceil(nBlocks/maxGridSize[0]);
+        nBlocks = maxGridSize[0];
+    }
+
+    // Allocate space for prng states on device
+    CUDA_CALL(cudaMalloc((void **) &devStates, nBlocks * threadsPerBlock * sizeof(curandState)));
+    
+    std::cout << "Doing the same on GPU...\n";
+    // Generating toys
     START_TIMER();
+    
+    // Copy input data from host to device
     CUDA_CALL(cudaMemcpy(dev_bkg_expected, bkg_expected, 
             n_bins * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CALL(cudaMemcpy(dev_obs_data, obs_data, 
@@ -210,38 +240,83 @@ int frequentist_test(int argc, char **argv){
             n_bins * sizeof(float), cudaMemcpyHostToDevice));
     #endif
     
+    // Set the result arrays to zero
     CUDA_CALL(cudaMemset(dev_q_toys, 0, 
                 ntoys * sizeof(float)));
 
+    #if GOF
+    cuda_call_generate_goodness_of_fit_toys(nBlocks,
+                                            threadsPerBlock,
+                                            dev_bkg_expected, 
+                                            dev_obs_data,
+                                            dev_q_toys,
+                                            n_bins,
+                                            ntoys,
+                                            devStates,
+                                            trialsPerThread);
+    #else
+    cuda_call_generate_neyman_pearson_toys(nBlocks,
+                                           threadsPerBlock,
+                                           dev_bkg_expected, 
+                                           dev_sig_expected,
+                                           dev_obs_data,
+                                           dev_q_toys,
+                                           n_bins,
+                                           ntoys,
+                                           devStates,
+                                           trialsPerThread);
+    
+    #endif
+
+    // Copy result back to host
+    CUDA_CALL(cudaMemcpy(host_q_toys, dev_q_toys, ntoys * sizeof(float), cudaMemcpyDeviceToHost));
 
     STOP_RECORD_TIMER(gpu_time_ms);
 
     // ******************************************************
-    //            PRINTOUT AND SAVE RESULTS
+    //            COMPARE AND SAVE RESULTS
     // ******************************************************
+    int larger_cpu = 0;
+    int larger_gpu = 0;
+    std::string out_cpu = out_filename;
+    std::string out_gpu = out_filename;
+    out_cpu.append(".cpu");
+    out_gpu.append(".gpu");
+    std::cout << "Saving the toy experiments' test statistics to " << out_cpu << " and " << out_gpu << std::endl;
+    std::ofstream file_cpu, file_gpu;
+    file_cpu.open(out_cpu);
+    file_gpu.open(out_gpu);
+    tqdm bar2;
+    for (int i = 0; i < ntoys; i++)
+    {
+        bar2.progress(i, ntoys);
+        file_cpu << q_toys[i] << "\n";
+        file_gpu << host_q_toys[i] << "\n";
+        if (q_toys[i] > q_obs) larger_cpu++;
+        if (host_q_toys[i] > q_obs) larger_gpu++;
+    }
+    bar2.finish();
 
-    float pval = float(larger)/ntoys;
+    float pval_cpu = float(larger_cpu)/ntoys;
+    float pval_gpu = float(larger_gpu)/ntoys;
     #if GOF
         std::cout << "p-value from Goodness-of-fit test: ";
     #else
         std::cout << "p-value from Neyman-Pearson hypothesis test: ";
     #endif
-    if (larger == 0)
-        std::cout << "less than " << 1/ntoys << std::endl;
+    if (larger_cpu == 0)
+        std::cout << "less than " << 1/ntoys << " (CPU), ";
     else
-        std::cout << pval << std::endl;
+        std::cout << pval_cpu << " (CPU), ";
+    if (larger_gpu == 0)
+        std::cout << "less than " << 1/ntoys << " (GPU)\n";
+    else
+        std::cout << pval_gpu << " (GPU)\n";
 
-    out_filename.append(".cpu");
-    std::cout << "Saving the toy experiments' test statistics to " << out_filename << std::endl;
-    std::ofstream fileSave;
-    fileSave.open(out_filename);
-    tqdm bar2;
-    for (int i = 0; i < ntoys; i++)
-    {
-        bar2.progress(i, ntoys);
-        fileSave << q_toys[i] << "\n";
-    }
-    bar2.finish();
+    std::cout << "CPU execution time: " << cpu_time_ms << " ms\n";
+    std::cout << "GPU execution time: " << gpu_time_ms << " ms\n";
+    
+
     return EXIT_SUCCESS;
 
 }
