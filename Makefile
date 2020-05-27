@@ -5,7 +5,7 @@
 
 # Input Names
 CUDA_FILES = src/toygenerator.cu
-CPP_FILES = src/toygenerator.cpp src/ta_utilities.cpp src/equations.cpp
+CPP_FILES = src/toygenerator.cpp src/equations.cpp
 
 # Directory names
 INCLUDEDIR = include
@@ -84,7 +84,7 @@ $(OBJDIR)/gof-%.cpp.o : src/%.cpp
 
 # Compile CUDA Source Files
 $(OBJDIR)/%.cu.o : src/%.cu
-	$(NVCC) $(NVCC_FLAGS) $(NVCC_GENCODES) -c -o $@ $(NVCC_INCLUDE) $<
+	$(NVCC) $(NVCC_FLAGS) $(NVCC_GENCODES) -c -o $@ $(NVCC_INCLUDE) $(INCLUDE) $<
 
 cuda: $(CUDA_OBJ_FILES) $(CUDA_OBJ)
 
