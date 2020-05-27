@@ -46,6 +46,8 @@ float chisquare(float exp, int obs)
     return -2 * (exp - obs + __logf(obs/exp));
 }
 
+__global__ void setup_kernel(curandState *state, int ntoys, int trialsPerThread);
+
 __global__
 void generate_goodness_of_fit_toys(float * dev_bkg_expected, 
                                    float * dev_obs_data,

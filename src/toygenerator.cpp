@@ -224,7 +224,7 @@ int frequentist_test(int argc, char **argv){
     }
 
     // Allocate space for prng states on device
-    CUDA_CALL(cudaMalloc((void **) &devStates, nBlocks * threadsPerBlock * sizeof(curandState)));
+    CUDA_CALL(cudaMalloc((void **) &devStates, ntoys * sizeof(curandState)));
     
     // Generating toys
     START_TIMER();
@@ -314,7 +314,24 @@ int frequentist_test(int argc, char **argv){
 
     std::cout << "CPU execution time: " << cpu_time_ms << " ms\n";
     std::cout << "GPU execution time: " << gpu_time_ms << " ms\n";
+    float speed_up = cpu_time_ms/gpu_time_ms;
+    printf("Gain a %.0f-time speedup with GPU\n", speed_up);
     
+    // Free memory on GPU
+    cudaFree(dev_q_toys);
+    cudaFree(devStates);
+    cudaFree(dev_bkg_expected);
+    cudaFree(dev_obs_data);
+
+    // Free memory on host
+    free(host_q_toys);
+    free(bkg_expected);
+    free(obs_data);
+
+    #if GOF==0
+        cudaFree(dev_sig_expected);
+        free(sig_expected);
+    #endif
 
     return EXIT_SUCCESS;
 
