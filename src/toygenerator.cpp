@@ -100,7 +100,7 @@ int frequentist_test(int argc, char **argv){
         {
             if (i + 1 < argc) 
             { 
-                out_filename = argv[i++]; 
+                out_filename = argv[i + 1]; 
             } 
             else 
             { 
@@ -112,7 +112,7 @@ int frequentist_test(int argc, char **argv){
         {
             if (i+1 < argc)
             { 
-                GPUonly = std::stoi(argv[i+1]);
+                GPUonly = std::stoi(argv[i + 1]);
                 std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on GPU only." << std::endl;
             }
             else
