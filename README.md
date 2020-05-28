@@ -35,10 +35,10 @@ Usage:
 
 ### Parameters:
 <ul>
-<li> <code>number of bins</code>: Number of bins used in the histograms for the test. The provided examples in `resources` directory use 20 bins. </li>
-<li> <code>background template file</code>: A text file containing the count of each bin in the background template histogram. Example can be found in `resources/background_template.txt`. </li>
-<li> <code>signal template file</code>: A text file containing the count of each bin in the signal template histogram. Only required for Neyman-Pearson hypothesis test. Example can be found in `resources/signal_template.txt`. </li>
-<li> <code>observed data file</code>: A text file containing the count of each bin in the observed data histogram. Example can be found in `resources/observed_data.txt`. </li>
+<li> <code>number of bins</code>: Number of bins used in the histograms for the test. The provided examples in <code>resources</code> directory use 20 bins. </li>
+<li> <code>background template file</code>: A text file containing the count of each bin in the background template histogram. Example can be found in <code>resources/background_template.txt</code>. </li>
+<li> <code>signal template file</code>: A text file containing the count of each bin in the signal template histogram. Only required for Neyman-Pearson hypothesis test. Example can be found in <code>resources/signal_template.txt</code>. </li>
+<li> <code>observed data file</code>: A text file containing the count of each bin in the observed data histogram. Example can be found in <code>resources/observed_data.txt</code>. </li>
 <li> <code>number of toys</code>: Number of toy Monte Carlo simulation to obtain the test statistics distribution. For a large number of toys (above 1e7), depending on the available device memory, the generation on GPU may be done by batches. Generating more than 1 billion toys, however, might cause segfault due to the host being out of memory. </li>
 <li> <code>--out [string]</code> (optional): Destination to save the generated test statistics. Note that for a large number of toys (above 1e7), saving the output to disk may take a long time depending on the disk IO. </li>
 <li> <code>--GPUonly [integer]</code> (optional): Whether to run only the generation on GPU. For larger number of toys (above 1e8), generating on CPU might take hours, while on GPU should take less than 1 minute. </li>
