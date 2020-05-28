@@ -46,7 +46,7 @@ float chisquare(float exp, int obs)
     return -2 * (exp - obs + __logf(obs/exp));
 }
 
-__global__ void setup_kernel(curandState *state, int ntoys, int trialsPerThread);
+__global__ void setup_kernel(curandState *state, int ntoys, int nStates);
 
 __global__
 void generate_goodness_of_fit_toys(float * dev_bkg_expected, 
@@ -55,7 +55,7 @@ void generate_goodness_of_fit_toys(float * dev_bkg_expected,
                                    int n_bins,
                                    int ntoys,
                                    curandState *states,
-                                   int trialsPerThread);
+                                   int nStates);
 
 
 __global__
@@ -66,7 +66,7 @@ void generate_neyman_pearson_toys(float * dev_bkg_expected,
                                    int n_bins,
                                    int ntoys,
                                    curandState *states,
-                                   int trialsPerThread);
+                                   int nStates);
 
 void cuda_call_generate_goodness_of_fit_toys(int nBlocks,
                                             int threadsPerBlock,
@@ -76,7 +76,7 @@ void cuda_call_generate_goodness_of_fit_toys(int nBlocks,
                                             int n_bins,
                                             int ntoys,
                                             curandState * devStates,
-                                            int trialsPerThread);
+                                            int nStates);
 
 void cuda_call_generate_neyman_pearson_toys(int nBlocks,
                                            int threadsPerBlock,
@@ -87,6 +87,6 @@ void cuda_call_generate_neyman_pearson_toys(int nBlocks,
                                            int n_bins,
                                            int ntoys,
                                            curandState * devStates,
-                                           int trialsPerThread);
+                                           int nStates);
 
 #endif

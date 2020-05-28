@@ -23,6 +23,18 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
+
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
+
 void check_args(int argc, char **argv){
     
     #if GOF
@@ -205,22 +217,6 @@ int frequentist_test(int argc, char **argv){
     //                GPU IMPLEMENTATION
     // ******************************************************
     
-    // Allocate space for input data on device
-    float *dev_bkg_expected;
-    CUDA_CALL(cudaMalloc((void **) &dev_bkg_expected, n_bins * sizeof(float)));
-    float *dev_obs_data;
-    CUDA_CALL(cudaMalloc((void **) &dev_obs_data, n_bins * sizeof(float)));
-    float *dev_q_toys;
-    CUDA_CALL(cudaMalloc((void **) &dev_q_toys, ntoys * sizeof(float)));
-    curandState *devStates;
-    float *host_q_toys = (float*) malloc(sizeof(float) * ntoys);
-
-
-    #if GOF==0
-        float *dev_sig_expected;
-        CUDA_CALL(cudaMalloc((void **) &dev_sig_expected, n_bins * sizeof(float)));
-    #endif
-    
     // Getting CUDA attributes
     int device;
     CUDA_CALL(cudaGetDevice(&device));
@@ -229,64 +225,206 @@ int frequentist_test(int argc, char **argv){
     int threadsPerBlock = prop.maxThreadsPerBlock;
     int *maxGridSize = prop.maxGridSize;
 
-    // Determine number of blocks 
-    int nBlocks = ceil(ntoys/threadsPerBlock);
-    int trialsPerThread = 1;
-    if (nBlocks > maxGridSize[0]) 
+    // Allocate space for input data on device
+    size_t freeMem, totalMem;
+    float availableFraction = 0.95; 
+    
+    float *dev_bkg_expected;
+    CUDA_CALL(cudaMalloc((void **) &dev_bkg_expected, n_bins * sizeof(float)));
+    float *dev_obs_data;
+    CUDA_CALL(cudaMalloc((void **) &dev_obs_data, n_bins * sizeof(float)));
+    
+    #if GOF==0
+        float *dev_sig_expected;
+        CUDA_CALL(cudaMalloc((void **) &dev_sig_expected, n_bins * sizeof(float)));
+    #endif
+    
+    curandState *devStates;
+    float *dev_q_toys;
+    float *host_q_toys = (float*) malloc(sizeof(float) * ntoys);
+    int batch_toys = 0, nbatches = 0;
+    
+    // Determine whether can generate in 1 run or multiple chunks
+    CUDA_CALL(cudaMemGetInfo(&freeMem, &totalMem));
+    
+    if (ntoys * sizeof(float) > 0.1 * freeMem)
     {
-        trialsPerThread = ceil(nBlocks/maxGridSize[0]);
-        nBlocks = maxGridSize[0];
+        batch_toys = ceil(0.1 * freeMem / sizeof(float)); // Number of toys generated per batch
+        nbatches = ceil(ntoys / batch_toys); // Number of batches
     }
 
-    // Allocate space for prng states on device
-    CUDA_CALL(cudaMalloc((void **) &devStates, ntoys * sizeof(curandState)));
-    
-    // Generating toys
-    START_TIMER();
-    
-    // Copy input data from host to device
-    CUDA_CALL(cudaMemcpy(dev_bkg_expected, bkg_expected, 
-            n_bins * sizeof(float), cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpy(dev_obs_data, obs_data, 
-            n_bins * sizeof(float), cudaMemcpyHostToDevice));
-    #if GOF==0
-    CUDA_CALL(cudaMemcpy(dev_sig_expected, sig_expected, 
-            n_bins * sizeof(float), cudaMemcpyHostToDevice));
-    #endif
-    
-    // Set the result arrays to zero
-    CUDA_CALL(cudaMemset(dev_q_toys, 0, 
-                ntoys * sizeof(float)));
+    if (batch_toys == 0) // Do everything in 1 run
+    {
+        CUDA_CALL(cudaMalloc((void **) &dev_q_toys, ntoys * sizeof(float)));
+        
+        // Get available memory 
+        CUDA_CALL(cudaMemGetInfo(&freeMem, &totalMem));
+        std::cout << "Free device memory: " << freeMem/(1024*1024) << "/" << totalMem/(1024*1024) << " MB" << std::endl;
+        
+        size_t availableMem = availableFraction * freeMem;
+        // Determine number of blocks based on number of toys requested 
+        int nBlocks = ceil(ntoys/threadsPerBlock);
+        if (nBlocks > maxGridSize[0]) 
+        {
+            nBlocks = maxGridSize[0];
+        }
+        
+        // Determine number of blocks based on available memory to allocate for curandState
+        if (availableMem < nBlocks * threadsPerBlock * sizeof(curandState))
+        {
+            nBlocks = floor(availableMem / (threadsPerBlock * sizeof(curandState)));
+        }
+        
+        // Allocate space for prng states on device
+        int nStates = nBlocks * threadsPerBlock;
+        CUDA_CALL(cudaMalloc((void **) &devStates, nStates * sizeof(curandState)));
+        
+        printf("+  Using %d blocks with %d threads per block\n", nBlocks, threadsPerBlock);
+        
+        // Generating toys
+        START_TIMER();
+        
+        // Copy input data from host to device
+        CUDA_CALL(cudaMemcpy(dev_bkg_expected, bkg_expected, 
+                n_bins * sizeof(float), cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy(dev_obs_data, obs_data, 
+                n_bins * sizeof(float), cudaMemcpyHostToDevice));
+        #if GOF==0
+        CUDA_CALL(cudaMemcpy(dev_sig_expected, sig_expected, 
+                n_bins * sizeof(float), cudaMemcpyHostToDevice));
+        #endif
+        
+        // Set the result arrays to zero
+        CUDA_CALL(cudaMemset(dev_q_toys, 0, 
+                    ntoys * sizeof(float)));
 
-    #if GOF
-    cuda_call_generate_goodness_of_fit_toys(nBlocks,
-                                            threadsPerBlock,
-                                            dev_bkg_expected, 
-                                            dev_obs_data,
-                                            dev_q_toys,
-                                            n_bins,
-                                            ntoys,
-                                            devStates,
-                                            trialsPerThread);
-    #else
-    cuda_call_generate_neyman_pearson_toys(nBlocks,
-                                           threadsPerBlock,
-                                           dev_bkg_expected, 
-                                           dev_sig_expected,
-                                           dev_obs_data,
-                                           dev_q_toys,
-                                           n_bins,
-                                           ntoys,
-                                           devStates,
-                                           trialsPerThread);
-    
-    #endif
+        #if GOF
+        cuda_call_generate_goodness_of_fit_toys(nBlocks,
+                                                threadsPerBlock,
+                                                dev_bkg_expected, 
+                                                dev_obs_data,
+                                                dev_q_toys,
+                                                n_bins,
+                                                ntoys,
+                                                devStates,
+                                                nStates);
+        #else
+        cuda_call_generate_neyman_pearson_toys(nBlocks,
+                                               threadsPerBlock,
+                                               dev_bkg_expected, 
+                                               dev_sig_expected,
+                                               dev_obs_data,
+                                               dev_q_toys,
+                                               n_bins,
+                                               ntoys,
+                                               devStates,
+                                               nStates);
+        
+        #endif
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
 
-    // Copy result back to host
-    CUDA_CALL(cudaMemcpy(host_q_toys, dev_q_toys, ntoys * sizeof(float), cudaMemcpyDeviceToHost));
+        // Copy result back to host
+        CUDA_CALL(cudaMemcpy(host_q_toys, dev_q_toys, ntoys * sizeof(float), cudaMemcpyDeviceToHost));
+        cudaFree(dev_q_toys);
+        cudaFree(devStates);
+        STOP_RECORD_TIMER(gpu_time_ms);
+    }
+    else // Generate toys by batch to accommodate with the device memory
+    {
+        std::cout << "Generating in " << nbatches << " batches\n";
+        START_TIMER();
+        
+        // Only do this once
+        CUDA_CALL(cudaMemcpy(dev_bkg_expected, bkg_expected, 
+                n_bins * sizeof(float), cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy(dev_obs_data, obs_data, 
+                n_bins * sizeof(float), cudaMemcpyHostToDevice));
+        #if GOF==0
+        CUDA_CALL(cudaMemcpy(dev_sig_expected, sig_expected, 
+                n_bins * sizeof(float), cudaMemcpyHostToDevice));
+        #endif
+            
+        int toy_pointer = 0;   
+        for (int batch = 0; batch < nbatches; batch++)
+        {
+            if ((batch+1) * batch_toys > ntoys) 
+            {
+                batch_toys = ntoys - batch * batch_toys;
+                if (batch_toys < 1) break;
+            }
+            std::cout << "Batch " << batch+1 << " of " << nbatches << ": Generating " << batch_toys << " toys\n";
 
-    STOP_RECORD_TIMER(gpu_time_ms);
+            CUDA_CALL(cudaMalloc((void **) &dev_q_toys, batch_toys * sizeof(float)));
 
+            #if GOF==0
+                float *dev_sig_expected;
+                CUDA_CALL(cudaMalloc((void **) &dev_sig_expected, n_bins * sizeof(float)));
+            #endif
+
+            // Get available memory 
+            CUDA_CALL(cudaMemGetInfo(&freeMem, &totalMem));
+            //std::cout << "Free device memory: " << freeMem/(1024*1024) << "/" << totalMem/(1024*1024) << " MB" << std::endl;
+            
+            size_t availableMem = availableFraction * freeMem;
+            // Determine number of blocks based on number of toys requested 
+            int nBlocks = ceil(batch_toys/threadsPerBlock);
+            if (nBlocks > maxGridSize[0]) 
+            {
+                nBlocks = maxGridSize[0];
+            }
+            
+            // Determine number of blocks based on available memory to allocate for curandState
+            if (availableMem < nBlocks * threadsPerBlock * sizeof(curandState))
+            {
+                nBlocks = floor(availableMem / (threadsPerBlock * sizeof(curandState)));
+            }
+            
+            // Allocate space for prng states on device
+            int nStates = nBlocks * threadsPerBlock;
+            CUDA_CALL(cudaMalloc((void **) &devStates, nStates * sizeof(curandState)));
+            
+            // Generating toys
+            printf("+  Using %d blocks with %d threads per block\n", nBlocks, threadsPerBlock);
+            
+            // Set the result arrays to zero
+            CUDA_CALL(cudaMemset(dev_q_toys, 0, 
+                        batch_toys * sizeof(float)));
+
+            #if GOF
+            cuda_call_generate_goodness_of_fit_toys(nBlocks,
+                                                    threadsPerBlock,
+                                                    dev_bkg_expected, 
+                                                    dev_obs_data,
+                                                    dev_q_toys,
+                                                    n_bins,
+                                                    batch_toys,
+                                                    devStates,
+                                                    nStates);
+            #else
+            cuda_call_generate_neyman_pearson_toys(nBlocks,
+                                                   threadsPerBlock,
+                                                   dev_bkg_expected, 
+                                                   dev_sig_expected,
+                                                   dev_obs_data,
+                                                   dev_q_toys,
+                                                   n_bins,
+                                                   batch_toys,
+                                                   devStates,
+                                                   nStates);
+            
+            #endif
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+
+            // Copy result back to host
+            CUDA_CALL(cudaMemcpy(host_q_toys+toy_pointer, dev_q_toys, batch_toys * sizeof(float), cudaMemcpyDeviceToHost));
+            cudaFree(dev_q_toys);
+            cudaFree(devStates);
+            toy_pointer += batch_toys;
+        }
+        STOP_RECORD_TIMER(gpu_time_ms);
+    }
     // ******************************************************
     //            COMPARE AND SAVE RESULTS
     // ******************************************************
@@ -294,27 +432,6 @@ int frequentist_test(int argc, char **argv){
     {
         int larger_cpu = 0;
         int larger_gpu = 0;
-        std::string out_cpu = out_filename;
-        std::string out_gpu = out_filename;
-        out_cpu.append("."+std::to_string(q_obs)+".cpu");
-        out_gpu.append("."+std::to_string(q_obs)+".gpu");
-        std::cout << "Saving the toy experiments' test statistics to " << out_cpu << " and " << out_gpu << std::endl;
-        std::ofstream file_cpu, file_gpu;
-        file_cpu.open(out_cpu);
-        file_gpu.open(out_gpu);
-        tqdm bar2;
-        for (int i = 0; i < ntoys; i++)
-        {
-            bar2.progress(i, ntoys);
-            file_cpu << q_toys[i] << "\n";
-            file_gpu << host_q_toys[i] << "\n";
-            if (q_toys[i] > q_obs) larger_cpu++;
-            if (host_q_toys[i] > q_obs) larger_gpu++;
-        }
-        bar2.finish();
-        file_cpu.close();
-        file_gpu.close();
-
         float pval_cpu = float(larger_cpu)/ntoys;
         float pval_gpu = float(larger_gpu)/ntoys;
         #if GOF
@@ -337,6 +454,27 @@ int frequentist_test(int argc, char **argv){
         float speed_up = cpu_time_ms/gpu_time_ms;
         printf("Gained a %.0f-time speedup with GPU\n", speed_up);
         
+        std::string out_cpu = out_filename;
+        std::string out_gpu = out_filename;
+        out_cpu.append("."+std::to_string(q_obs)+".cpu");
+        out_gpu.append("."+std::to_string(q_obs)+".gpu");
+        std::cout << "Saving the toy experiments' test statistics to " << out_cpu << " and " << out_gpu << std::endl;
+        std::ofstream file_cpu, file_gpu;
+        file_cpu.open(out_cpu);
+        file_gpu.open(out_gpu);
+        tqdm bar2;
+        for (int i = 0; i < ntoys; i++)
+        {
+            bar2.progress(i, ntoys);
+            file_cpu << q_toys[i] << "\n";
+            file_gpu << host_q_toys[i] << "\n";
+            if (q_toys[i] > q_obs) larger_cpu++;
+            if (host_q_toys[i] > q_obs) larger_gpu++;
+        }
+        bar2.finish();
+        file_cpu.close();
+        file_gpu.close();
+
         // Free memory on host
         free(host_q_toys);
         free(bkg_expected);
@@ -350,14 +488,6 @@ int frequentist_test(int argc, char **argv){
     else
     {
         int larger_gpu = 0;
-        tqdm bar2;
-        for (int i = 0; i < ntoys; i++)
-        {
-            bar2.progress(i, ntoys);
-            if (host_q_toys[i] > q_obs) larger_gpu++;
-        }
-        bar2.finish();
-        
         float pval_gpu = float(larger_gpu)/ntoys;
         #if GOF
             std::cout << "p-value from Goodness-of-fit test: ";
@@ -370,14 +500,27 @@ int frequentist_test(int argc, char **argv){
             std::cout << pval_gpu << " (GPU)\n";
 
         std::cout << "Toy-generation run time on GPU: " << gpu_time_ms << " ms\n";
+        
+        std::string out_gpu = out_filename;
+        out_gpu.append("."+std::to_string(q_obs)+".gpu");
+        std::cout << "Saving the toy experiments' test statistics to " << out_gpu << std::endl;
+        std::ofstream file_gpu;
+        file_gpu.open(out_gpu);
+        tqdm bar2;
+        for (int i = 0; i < ntoys; i++)
+        {
+            bar2.progress(i, ntoys);
+            if (host_q_toys[i] > q_obs) larger_gpu++;
+            file_gpu << host_q_toys[i] << "\n";
+        }
+        bar2.finish();
+        file_gpu.close();
+        
 
     }
     // Free memory on GPU
-    cudaFree(dev_q_toys);
-    cudaFree(devStates);
     cudaFree(dev_bkg_expected);
     cudaFree(dev_obs_data);
-
 
     return EXIT_SUCCESS;
 
