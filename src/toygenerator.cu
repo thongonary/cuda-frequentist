@@ -99,7 +99,7 @@ void cuda_call_generate_goodness_of_fit_toys(int nBlocks,
                                             curandState * devStates,
                                             int trialsPerThread)
 {
-    printf("Doing the same on GPU using %d blocks and %d threads per block\n", nBlocks, threadsPerBlock);
+    printf("Generating toys on GPU using %d blocks and %d threads per block\n", nBlocks, threadsPerBlock);
     setup_kernel<<<nBlocks, threadsPerBlock>>>(devStates, ntoys, trialsPerThread);
     generate_goodness_of_fit_toys<<<nBlocks, threadsPerBlock>>>(dev_bkg_expected, 
                                                                dev_obs_data,
@@ -122,7 +122,7 @@ void cuda_call_generate_neyman_pearson_toys(int nBlocks,
                                            curandState * devStates,
                                            int trialsPerThread)
 {
-    printf("Doing the same on GPU using %d blocks and %d threads per block\n", nBlocks, threadsPerBlock);
+    printf("Generating toys on GPU using %d blocks and %d threads per block\n", nBlocks, threadsPerBlock);
     setup_kernel<<<nBlocks, threadsPerBlock>>>(devStates, ntoys, trialsPerThread);
     generate_neyman_pearson_toys<<<nBlocks, threadsPerBlock>>>(dev_bkg_expected, 
                                                                dev_sig_expected,

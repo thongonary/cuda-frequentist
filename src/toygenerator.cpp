@@ -26,15 +26,15 @@ using std::endl;
 void check_args(int argc, char **argv){
     
     #if GOF
-        if (argc != 6){
+        if (argc < 6){
             std::cerr << "Incorrect number of arguments.\n";
-            std::cerr << "Arguments: <number of bins> <background template file> <observed data file> <number of toys> <output file>\n";
+            std::cerr << "Arguments: <number of bins> <background template file> <observed data file> <number of toys> <output file> [-optional: GPU only]\n";
             exit(EXIT_FAILURE);
         }
     #else
-        if (argc != 7){
+        if (argc < 7){
             std::cerr << "Incorrect number of arguments.\n";
-            std::cerr << "Arguments: <number of bins> <background template file> <signal template file> <observed data file> <number of toys> <output file>\n";
+            std::cerr << "Arguments: <number of bins> <background template file> <signal template file> <observed data file> <number of toys> <output file> [-optional: GPU only]\n";
             exit(EXIT_FAILURE);
         }
     #endif
@@ -69,16 +69,28 @@ int frequentist_test(int argc, char **argv){
     //                GETTING INPUTS
     // ******************************************************
     
+    bool GPUonly = false;
 
     #if GOF == 0
         std::string out_filename = argv[6];
         float ntoys = std::stof(argv[5]); // number of toy experiments
         std::string obs_filename = argv[4];
         std::string sig_filename = argv[3];
+        if (argc > 6) 
+        {
+            GPUonly = std::stoi(argv[7]);
+            std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on GPU only." << std::endl;
+        }
+            
     #else
         std::string out_filename = argv[5];
         float ntoys = std::stof(argv[4]); // number of toy experiments
         std::string obs_filename = argv[3];
+        if (argc > 5) 
+        {
+            GPUonly = std::stoi(argv[6]);
+            std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on GPU only." << std::endl;
+        }
     #endif
 
     static const int n_bins = std::stoi(argv[1]);
@@ -132,7 +144,6 @@ int frequentist_test(int argc, char **argv){
     //                CPU IMPLEMENTATION
     // ******************************************************
         
-    START_TIMER();
     
     float q_obs = 0;
 
@@ -150,41 +161,45 @@ int frequentist_test(int argc, char **argv){
             q_obs += -2 * numerator/denominator;
     #endif
     }
-
-    // Generate toys 
-    std::default_random_engine generator;
-
-    // Create Poisson distribution for each bin
-    std::vector<std::poisson_distribution<int>> distributions;
-    for (int i = 0; i < n_bins; i++)
+    float *q_toys;
+    if (!GPUonly)
     {
-        distributions.push_back(std::poisson_distribution<int>(bkg_expected[i]));
-    }
-    
-    // Generating toy Monte Carlo for test statistics
-    int toy;
-    float *q_toys = (float*) malloc(sizeof(float) * ntoys);
-    std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on CPU" << std::endl;
-    tqdm bar;
-    for (int experiment = 0; experiment < ntoys; experiment++)
-    {
-        bar.progress(experiment, ntoys);
-        q_toys[experiment] = 0;
-        for (int bin = 0; bin < n_bins; bin++)
+        START_TIMER();
+
+        // Generate toys 
+        std::default_random_engine generator;
+
+        // Create Poisson distribution for each bin
+        std::vector<std::poisson_distribution<int>> distributions;
+        for (int i = 0; i < n_bins; i++)
         {
-            toy = distributions[bin](generator);
-            #if GOF
-                q_toys[experiment] += equations::chisquare(bkg_expected[bin], toy);
-            #else
-                denominator = equations::log_poisson(bkg_expected[bin], toy);
-                numerator = equations::log_poisson(sig_expected[bin]+bkg_expected[bin], toy);
-                q_toys[experiment] += -2 * numerator/denominator;
-            #endif
+            distributions.push_back(std::poisson_distribution<int>(bkg_expected[i]));
         }
+        
+        // Generating toy Monte Carlo for test statistics
+        int toy;
+        q_toys = (float*) malloc(sizeof(float) * ntoys);
+        std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on CPU" << std::endl;
+        tqdm bar;
+        for (int experiment = 0; experiment < ntoys; experiment++)
+        {
+            bar.progress(experiment, ntoys);
+            q_toys[experiment] = 0;
+            for (int bin = 0; bin < n_bins; bin++)
+            {
+                toy = distributions[bin](generator);
+                #if GOF
+                    q_toys[experiment] += equations::chisquare(bkg_expected[bin], toy);
+                #else
+                    denominator = equations::log_poisson(bkg_expected[bin], toy);
+                    numerator = equations::log_poisson(sig_expected[bin]+bkg_expected[bin], toy);
+                    q_toys[experiment] += -2 * numerator/denominator;
+                #endif
+            }
+        }
+        bar.finish();
+        STOP_RECORD_TIMER(cpu_time_ms);
     }
-    bar.finish();
-    STOP_RECORD_TIMER(cpu_time_ms);
-
 
     // ******************************************************
     //                GPU IMPLEMENTATION
@@ -275,64 +290,94 @@ int frequentist_test(int argc, char **argv){
     // ******************************************************
     //            COMPARE AND SAVE RESULTS
     // ******************************************************
-    int larger_cpu = 0;
-    int larger_gpu = 0;
-    std::string out_cpu = out_filename;
-    std::string out_gpu = out_filename;
-    out_cpu.append(".cpu");
-    out_gpu.append(".gpu");
-    std::cout << "Saving the toy experiments' test statistics to " << out_cpu << " and " << out_gpu << std::endl;
-    std::ofstream file_cpu, file_gpu;
-    file_cpu.open(out_cpu);
-    file_gpu.open(out_gpu);
-    tqdm bar2;
-    for (int i = 0; i < ntoys; i++)
+    if (!GPUonly)
     {
-        bar2.progress(i, ntoys);
-        file_cpu << q_toys[i] << "\n";
-        file_gpu << host_q_toys[i] << "\n";
-        if (q_toys[i] > q_obs) larger_cpu++;
-        if (host_q_toys[i] > q_obs) larger_gpu++;
+        int larger_cpu = 0;
+        int larger_gpu = 0;
+        std::string out_cpu = out_filename;
+        std::string out_gpu = out_filename;
+        out_cpu.append("."+std::to_string(q_obs)+".cpu");
+        out_gpu.append("."+std::to_string(q_obs)+".gpu");
+        std::cout << "Saving the toy experiments' test statistics to " << out_cpu << " and " << out_gpu << std::endl;
+        std::ofstream file_cpu, file_gpu;
+        file_cpu.open(out_cpu);
+        file_gpu.open(out_gpu);
+        tqdm bar2;
+        for (int i = 0; i < ntoys; i++)
+        {
+            bar2.progress(i, ntoys);
+            file_cpu << q_toys[i] << "\n";
+            file_gpu << host_q_toys[i] << "\n";
+            if (q_toys[i] > q_obs) larger_cpu++;
+            if (host_q_toys[i] > q_obs) larger_gpu++;
+        }
+        bar2.finish();
+        file_cpu.close();
+        file_gpu.close();
+
+        float pval_cpu = float(larger_cpu)/ntoys;
+        float pval_gpu = float(larger_gpu)/ntoys;
+        #if GOF
+            std::cout << "p-value from Goodness-of-fit test: ";
+        #else
+            std::cout << "p-value from Neyman-Pearson hypothesis test: ";
+        #endif
+        if (larger_cpu == 0)
+            std::cout << "less than " << 1/ntoys << " (CPU), ";
+        else
+            std::cout << pval_cpu << " (CPU), ";
+        if (larger_gpu == 0)
+            std::cout << "less than " << 1/ntoys << " (GPU)\n";
+        else
+            std::cout << pval_gpu << " (GPU)\n";
+
+        std::cout << "Toy-generation run time: \n";
+        std::cout << "+ On CPU: " << cpu_time_ms << " ms\n";
+        std::cout << "+ On GPU: " << gpu_time_ms << " ms\n";
+        float speed_up = cpu_time_ms/gpu_time_ms;
+        printf("Gained a %.0f-time speedup with GPU\n", speed_up);
+        
+        // Free memory on host
+        free(host_q_toys);
+        free(bkg_expected);
+        free(obs_data);
+
+        #if GOF==0
+            cudaFree(dev_sig_expected);
+            free(sig_expected);
+        #endif
     }
-    bar2.finish();
-
-    float pval_cpu = float(larger_cpu)/ntoys;
-    float pval_gpu = float(larger_gpu)/ntoys;
-    #if GOF
-        std::cout << "p-value from Goodness-of-fit test: ";
-    #else
-        std::cout << "p-value from Neyman-Pearson hypothesis test: ";
-    #endif
-    if (larger_cpu == 0)
-        std::cout << "less than " << 1/ntoys << " (CPU), ";
     else
-        std::cout << pval_cpu << " (CPU), ";
-    if (larger_gpu == 0)
-        std::cout << "less than " << 1/ntoys << " (GPU)\n";
-    else
-        std::cout << pval_gpu << " (GPU)\n";
+    {
+        int larger_gpu = 0;
+        tqdm bar2;
+        for (int i = 0; i < ntoys; i++)
+        {
+            bar2.progress(i, ntoys);
+            if (host_q_toys[i] > q_obs) larger_gpu++;
+        }
+        bar2.finish();
+        
+        float pval_gpu = float(larger_gpu)/ntoys;
+        #if GOF
+            std::cout << "p-value from Goodness-of-fit test: ";
+        #else
+            std::cout << "p-value from Neyman-Pearson hypothesis test: ";
+        #endif
+        if (larger_gpu == 0)
+            std::cout << "less than " << 1/ntoys << " (GPU)\n";
+        else
+            std::cout << pval_gpu << " (GPU)\n";
 
-    std::cout << "Toy-generation run time: \n";
-    std::cout << "+ On CPU: " << cpu_time_ms << " ms\n";
-    std::cout << "+ On GPU: " << gpu_time_ms << " ms\n";
-    float speed_up = cpu_time_ms/gpu_time_ms;
-    printf("Gained a %.0f-time speedup with GPU\n", speed_up);
-    
+        std::cout << "Toy-generation run time on GPU: " << gpu_time_ms << " ms\n";
+
+    }
     // Free memory on GPU
     cudaFree(dev_q_toys);
     cudaFree(devStates);
     cudaFree(dev_bkg_expected);
     cudaFree(dev_obs_data);
 
-    // Free memory on host
-    free(host_q_toys);
-    free(bkg_expected);
-    free(obs_data);
-
-    #if GOF==0
-        cudaFree(dev_sig_expected);
-        free(sig_expected);
-    #endif
 
     return EXIT_SUCCESS;
 
