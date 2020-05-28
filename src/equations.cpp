@@ -36,6 +36,7 @@ namespace equations
 
     float chisquare(float exp, int obs)
     {
+        // http://cousins.web.cern.ch/cousins/ongoodness6march2016.pdf
         return -2 * (exp - obs + log(obs/exp));
     }
 }

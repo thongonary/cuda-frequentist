@@ -1,7 +1,4 @@
-# CS 179 Project Makefile
-# Written by Thong Nguyen, 2020
-#
-# Product Names
+# Author: Thong Nguyen, Caltech, May 2020
 
 # Input Names
 CUDA_FILES = src/toygenerator.cu
