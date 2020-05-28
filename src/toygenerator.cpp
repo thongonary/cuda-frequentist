@@ -113,7 +113,7 @@ int frequentist_test(int argc, char **argv){
             if (i+1 < argc)
             { 
                 GPUonly = std::stoi(argv[i + 1]);
-                std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on GPU only." << std::endl;
+                if (GPUonly == 1) std::cout << "Generating " << ntoys << " toy experiments to obtain the test statistics distribution on GPU only." << std::endl;
             }
             else
             {
