@@ -10,19 +10,24 @@ The background Monte Carlo is generated from an exponential distribution <img sr
 
 The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_0"> (background only) or the alternative hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_1"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
-![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right))
+![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right))      [1]
 
 In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\mathcal{L}(x,&space;\theta)) is the Poisson likelihood of the rate parameter ![equation](https://latex.codecogs.com/gif.latex?\theta) given the observed data ![equation](https://latex.codecogs.com/gif.latex?x). The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
 ![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\log&space;\left(&space;\frac&space;{f(x_i,&space;\theta_{i}^{1})}{f(x_i,&space;\theta_{i}^{0})}&space;\right)), where 
 
-![equation](https://latex.codecogs.com/gif.latex?f(x_i,&space;\theta_i)&space;=&space;\frac{\theta_i&space;^&space;{x_i}&space;e^{-\theta_i}}{x!}) 
+![equation](https://latex.codecogs.com/gif.latex?f(x_i,&space;\theta_i)&space;=&space;\frac{\theta_i&space;^&space;{x_i}&space;e^{-\theta_i}}{x!}) and ![equation](https://latex.codecogs.com/gif.latex?i) is the index of each bin. 
 
-The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([NIMP, 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
+The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([Nucl. Instrum. Meth., 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
 
-![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\left(&space;\theta_i&space;-&space;x_i&space;&plus;&space;\log&space;\left\(&space;\frac{x_i}{\theta_i}&space;\right)&space;\right))
+<img src="https://render.githubusercontent.com/render/math?math=q_{0} = -2 \sum_i \left( \theta_i - x_i + \log \left\( \frac{x_i}{\theta_i} \right) \right)">.          [2]
+ 
+where the saturated model of the data is taken as the alternative hypothesis. This test statistics can be interpreted as the upper bound for the family of alternative hypothesis distributions.
 
+In frequentist method, a distribution of the test statistics ![equation](https://latex.codecogs.com/gif.latex?f(q)) is generated numerically from Monte Carlo algorithm. Each toy data is generated randomly from a Poisson distribution of each bin in the null hypothesis, then evaluated against equation [1] or [2] to obtain the test statistics ![equation](https://latex.codecogs.com/gif.latex?q_0). The observed data ![equation](https://latex.codecogs.com/gif.latex?q_{obs}) is obtained similarly. The p-value is then computed as:
 
+![equation](https://latex.codecogs.com/gif.latex?\textrm{p-value}&space;=&space;\int_{q_{obs}}^{\infty}&space;f(q)dq)
+   
 
 ### 2. Algorithm Overview
 
@@ -32,6 +37,16 @@ The goodness-of-fit test, on the other hand, only evalutes the compatibility of 
 ### 4. Code Structure
 
 ### 5. Execution Instructions
+
+#### Dependencies
+This package was developed and tested on Linux machines with CUDA version >= 9.1 and g++ version >= 4.8.5.
+
+#### Installation
+```
+git clone git@github.com:thongonary/cuda-frequentist.git
+cd cuda-frequentist
+make
+```
 
 #### Neyman-Pearson hypothesis testing
 The alternative hypothesis is explicitly required, ie, signal templated needs to be provided.
@@ -74,28 +89,28 @@ Usage:
 
 ### 6. Demo Scripts and Outputs 
 
-Neyman-Pearson test with 1e6 Monte Carlo toys, running on both CPU and GPU:
+Neyman-Pearson test with 10M Monte Carlo toys, running on both CPU and GPU:
 ```
-$ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e6
+$ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7
 
 [INPUT] Reading 20 bins from background file resources/background_template.txt
 [INPUT] Reading 20 bins from data file resources/observed_data.txt
 [INPUT] Reading 20 bins from signal file resources/signal_template.txt
 
-Generating 1000000 toy experiments to obtain the test statistics distribution on CPU
-  ████████████████████████████████████████▏ 100.0% [1000000/1000000 | 62.4 kHz | 16s<0s]
+Generating 10000000 toy experiments to obtain the test statistics distribution on CPU
+  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 62.5 kHz | 160s<0s]
 
-Generating 1000000 toy experiments to obtain the test statistics distribution on GPU
+Generating 10000000 toy experiments to obtain the test statistics distribution on GPU
 [INFO] Free device memory: 11794/12209 MB
-+  Using 976 blocks with 1024 threads per block
++  Using 9765 blocks with 1024 threads per block
 
 Toy-generation run time:
-+ On CPU: 16048.8 ms
-+ On GPU: 32.2669 ms
-Gained a 497-time speedup with GPU
++ On CPU: 160102 ms
++ On GPU: 287.618 ms
+Gained a 557-time speedup with GPU
 
-p-value from Neyman-Pearson hypothesis test: less than 1e-06 (CPU), less than 1e-06 (GPU).
-Rerun with at least 25000000 toys to obtain a more statistically precise result.
+p-value from Neyman-Pearson hypothesis test: less than 1e-07 (CPU), less than 1e-07 (GPU).
+Rerun with at least 250000000 toys to obtain a more statistically precise result.
 ```
 
 Goodness of fit test with 1e7 Monte Carlo toys, running on both CPU and GPU:
