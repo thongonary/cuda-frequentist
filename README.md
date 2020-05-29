@@ -10,13 +10,20 @@ The background Monte Carlo is generated from an exponential distribution <img sr
 
 The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_0"> (background only) or the alternative hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_1"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
-![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right)) 
+<p align="center">
+    <img src="images/NPratio.gif" >
+</p>
 
 In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\mathcal{L}(x,&space;\theta)) is the Poisson likelihood of the rate parameter ![equation](https://latex.codecogs.com/gif.latex?\theta) given the observed data ![equation](https://latex.codecogs.com/gif.latex?x). The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
-![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\log&space;\left(&space;\frac&space;{f(x_i,&space;\theta_{i}^{1})}{f(x_i,&space;\theta_{i}^{0})}&space;\right)), where 
-
-![equation](https://latex.codecogs.com/gif.latex?f(x_i,&space;\theta_i)&space;=&space;\frac{\theta_i&space;^&space;{x_i}&space;e^{-\theta_i}}{x!}) and ![equation](https://latex.codecogs.com/gif.latex?i) is the index of each bin. 
+<p align="center">
+    <img src="images/NPratio_sum.gif" >,
+</p>
+where
+<p align="center">
+    <img src="images/poisson.gif" >,
+</p>
+and ![equation](https://latex.codecogs.com/gif.latex?i) is the index of each bin. 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([Nucl. Instrum. Meth., 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
 
@@ -28,7 +35,9 @@ where the saturated model of the data is taken as the alternative hypothesis. Th
 
 In frequentist method, a distribution of the test statistics ![equation](https://latex.codecogs.com/gif.latex?f(q)) is generated numerically from Monte Carlo algorithm. Each toy data is generated randomly from a Poisson distribution of each bin in the null hypothesis, then evaluated against either the Neyman-Pearson log likehood ratio or the Goodness-of-fit formula to obtain the test statistics ![equation](https://latex.codecogs.com/gif.latex?q_0). The observed data ![equation](https://latex.codecogs.com/gif.latex?q_{obs}) is obtained similarly. The p-value is then computed as:
 
-![equation](https://latex.codecogs.com/gif.latex?\textrm{p-value}&space;=&space;\int_{q_{obs}}^{\infty}&space;f(q)dq)
+<p align="center">
+    <img src="images/pvalue.gif" >
+</p>
    
 
 ### 2. Algorithm Overview
