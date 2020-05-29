@@ -20,9 +20,6 @@ In binned histograms, <img src="images/L_x_theta.gif"> is the Poisson likelihood
     <img src="images/NPratio_sum.gif" >,
 </p>
 where
-<p align="center">
-    <img src="images/poisson.gif" >,
-</p>
 
 is the Poisson likelihood and <img src="images/i.gif"> is the index of each bin. 
 
