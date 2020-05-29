@@ -2,7 +2,6 @@
 
 
 ### Table of Contents
-=================
 
     * [GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing](#gpu-accelerated-toy-monte-carlo-generator-for-frequentist-simple-hypothesis-testing)
         * [1. Introduction](#1-introduction)
