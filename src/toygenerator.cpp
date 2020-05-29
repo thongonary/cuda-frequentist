@@ -313,6 +313,7 @@ int frequentist_test(int argc, char **argv){
     CUDA_CALL(cudaGetDeviceProperties(&prop, device));
     int threadsPerBlock = prop.maxThreadsPerBlock;
     int *maxGridSize = prop.maxGridSize;
+    int warpSize = prop.warpSize;
     unsigned int * larger_gpu;
     larger_gpu = (unsigned int*) malloc(sizeof(unsigned int));
     memset(larger_gpu, 0, sizeof(unsigned int));
@@ -388,7 +389,13 @@ int frequentist_test(int argc, char **argv){
             nBlocks = floor(availableMem / (threadsPerBlock * sizeof(curandState)));
         }
         
-        if (nBlocks < 1) nBlocks = 1;
+        if (nBlocks < 1) nBlocks = 1; 
+        else
+        {
+            // Use block size as multiple of warp size to align access pattern 
+            unsigned int multiple = ceil(nBlocks / warpSize);
+            nBlocks = warpSize * multiple;
+        }
         
         // Allocate space for prng states on device
         unsigned int nStates = nBlocks * threadsPerBlock;
@@ -529,6 +536,14 @@ int frequentist_test(int argc, char **argv){
                 nBlocks = floor(availableMem / (threadsPerBlock * sizeof(curandState)));
             }
             
+            if (nBlocks < 1) nBlocks = 1; 
+            else
+            {
+                // Use block size as multiple of warp size to align access pattern 
+                unsigned int multiple = ceil(nBlocks / warpSize);
+                nBlocks = warpSize * multiple;
+            }
+
             // Allocate space for prng states on device
             int nStates = nBlocks * threadsPerBlock;
             CUDA_CALL(cudaMalloc((void **) &devStates, nStates * sizeof(curandState)));
