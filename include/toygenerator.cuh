@@ -51,10 +51,19 @@ void generate_goodness_of_fit_toys(float * dev_bkg_expected,
                                    float * dev_obs_data,
                                    float * dev_q_toys,
                                    int n_bins,
-                                   int ntoys,
+                                   unsigned long ntoys,
                                    curandState *states,
-                                   int nStates);
+                                   unsigned int nStates);
 
+__global__
+void count_extreme_goodness_of_fit(float * dev_bkg_expected, 
+                                   float * dev_obs_data,
+                                   unsigned int * dev_larger_gpu,
+                                   float q_obs,
+                                   int n_bins,
+                                   unsigned long ntoys,
+                                   curandState *states,
+                                   unsigned int nStates);
 
 __global__
 void generate_neyman_pearson_toys(float * dev_bkg_expected, 
@@ -62,29 +71,63 @@ void generate_neyman_pearson_toys(float * dev_bkg_expected,
                                    float * dev_obs_data,
                                    float * dev_q_toys,
                                    int n_bins,
-                                   int ntoys,
+                                   unsigned long ntoys,
                                    curandState *states,
-                                   int nStates);
+                                   unsigned int nStates);
 
-void cuda_call_generate_goodness_of_fit_toys(int nBlocks,
+__global__
+void count_extreme_neyman_pearson(float * dev_bkg_expected, 
+                                   float * dev_sig_expected,
+                                   float * dev_obs_data,
+                                   unsigned int * dev_larger_gpu,
+                                   float q_obs,
+                                   int n_bins,
+                                   unsigned long ntoys,
+                                   curandState *states,
+                                   unsigned int nStates);
+
+void cuda_call_generate_goodness_of_fit_toys(unsigned int nBlocks,
                                             int threadsPerBlock,
                                             float * dev_bkg_expected, 
                                             float * dev_obs_data,
                                             float * dev_q_toys,
                                             int n_bins,
-                                            int ntoys,
+                                            unsigned long ntoys,
                                             curandState * devStates,
-                                            int nStates);
+                                            unsigned int nStates);
 
-void cuda_call_generate_neyman_pearson_toys(int nBlocks,
+void cuda_call_count_extreme_goodness_of_fit(unsigned int nBlocks,
+                                            int threadsPerBlock,
+                                            float * dev_bkg_expected, 
+                                            float * dev_obs_data,
+                                            unsigned int * dev_larger_gpu,
+                                            float q_obs,
+                                            int n_bins,
+                                            unsigned long ntoys,
+                                            curandState * devStates,
+                                            unsigned int nStates);
+
+void cuda_call_generate_neyman_pearson_toys(unsigned int nBlocks,
                                            int threadsPerBlock,
                                            float * dev_bkg_expected, 
                                            float * dev_sig_expected,
                                            float * dev_obs_data,
                                            float * dev_q_toys,
                                            int n_bins,
-                                           int ntoys,
+                                           unsigned long ntoys,
                                            curandState * devStates,
-                                           int nStates);
+                                           unsigned int nStates);
+
+void cuda_call_count_extreme_neyman_pearson(unsigned int nBlocks,
+                                           int threadsPerBlock,
+                                           float * dev_bkg_expected, 
+                                           float * dev_sig_expected,
+                                           float * dev_obs_data,
+                                           unsigned int * dev_larger_gpu,
+                                           float q_obs,
+                                           int n_bins,
+                                           unsigned long ntoys,
+                                           curandState * devStates,
+                                           unsigned int nStates);
 
 #endif
