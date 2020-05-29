@@ -24,7 +24,7 @@ where
     <img src="images/poisson.gif" >,
 </p>
 
-and <img src="images/i.gif"> is the index of each bin. 
+is the Poisson likelihood and <img src="images/i.gif"> is the index of each bin. 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([Nucl. Instrum. Meth., 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
 
