@@ -18,9 +18,10 @@ In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\mathcal{
 
 ![equation](https://latex.codecogs.com/gif.latex?f(x_i,&space;\theta_i)&space;=&space;\frac{\theta_i&space;^&space;{x_i}&space;e^{-\theta_i}}{x!}) 
 
-The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins derived the following test statistics using saturated models for Poisson binned histograms:
+The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([NIMP, 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
 
 ![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\left(&space;\theta_i&space;-&space;x_i&space;&plus;&space;\log&space;\left\(&space;\frac{x_i}{\theta_i}&space;\right)&space;\right))
+
 
 
 ### 2. Algorithm Overview
