@@ -1,25 +1,25 @@
 ## GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing
 
 
-Table of Contents
+### Table of Contents
 =================
 
-      * [GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing](#gpu-accelerated-toy-monte-carlo-generator-for-frequentist-simple-hypothesis-testing)
-         * [1. Introduction](#1-introduction)
-         * [2. Algorithm Overview](#2-algorithm-overview)
-         * [3. GPU Optimization and Specifics](#3-gpu-optimization-and-specifics)
+    * [GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing](#gpu-accelerated-toy-monte-carlo-generator-for-frequentist-simple-hypothesis-testing)
+        * [1. Introduction](#1-introduction)
+        * [2. Algorithm Overview](#2-algorithm-overview)
+        * [3. GPU Optimization and Specifics](#3-gpu-optimization-and-specifics)
             * [Random number dependency](#random-number-dependency)
             * [Memory overflow](#memory-overflow)
             * [Coalesced memory access](#coalesced-memory-access)
             * [Data transfer between host and device](#data-transfer-between-host-and-device)
-         * [4. Code Structure](#4-code-structure)
-         * [5. Execution Instructions](#5-execution-instructions)
+        * [4. Code Structure](#4-code-structure)
+        * [5. Execution Instructions](#5-execution-instructions)
             * [Dependencies](#dependencies)
             * [Installation](#installation)
             * [Neyman-Pearson hypothesis testing](#neyman-pearson-hypothesis-testing)
             * [Improved chisquare goodness-of-fit testing](#improved-chisquare-goodness-of-fit-testing)
             * [Parameters](#parameters)
-         * [6. Demo Scripts and Outputs](#6-demo-scripts-and-outputs)
+        * [6. Demo Scripts and Outputs](#6-demo-scripts-and-outputs)
 
 ### 1. Introduction
 This package parallelizes the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA. Two algorithms are implemented: Simple hypothesis test using Neyman-Pearson lemma and Improved chisquare goodness-of-fit test using saturated model from observed data. An example from `resources` directory provides the bin contents of the following histogram:
@@ -149,25 +149,25 @@ Usage:
 
 Neyman-Pearson test with 10M Monte Carlo toys, running on both CPU and GPU:
 ```
-./neyman-pearson 40 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7
+$ ./neyman-pearson 40 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7
 
 [INPUT] Reading 40 bins from background file resources/background_template.txt
 [INPUT] Reading 40 bins from data file resources/observed_data.txt
 [INPUT] Reading 40 bins from signal file resources/signal_template.txt
 
 Generating 10000000 toy experiments to obtain the test statistics distribution on CPU
-  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 30.2 kHz | 331s<0s]
+  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 29.3 kHz | 342s<0s]
 
 Generating 10000000 toy experiments to obtain the test statistics distribution on GPU
-[INFO] Free device memory: 11795/12209 MB
-+  Using 9765 blocks with 1024 threads per block
+[INFO] Free device memory: 12100/12212 MB
++  Using 9760 blocks with 1024 threads per block
 
 Toy-generation run time:
-+ On CPU: 330842 ms
-+ On GPU: 754.432 ms
-Gained a 439-time speedup with GPU
++ On CPU: 341646 ms
++ On GPU: 702.995 ms
+Gained a 486-time speedup with GPU
 
-p-value from Neyman-Pearson hypothesis test: 9.6e-06 (CPU), 8.8e-06 (GPU)
+p-value from Neyman-Pearson hypothesis test: 9.6e-06 (CPU), 1.11e-05 (GPU)
 ```
 
 Goodness of fit test with 1e7 Monte Carlo toys, running on both CPU and GPU:
