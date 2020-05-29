@@ -21,7 +21,7 @@ In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\mathcal{
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([Nucl. Instrum. Meth., 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
 
 <p align="center">
-    <img src="images/GOF_formula.gif" width="1000">
+    <img src="images/GOF_formula.gif" >
 </p>
  
 where the saturated model of the data is taken as the alternative hypothesis. This test statistics can be interpreted as the upper bound for the family of alternative hypothesis distributions.
