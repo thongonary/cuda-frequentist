@@ -250,7 +250,7 @@ int frequentist_test(int argc, char **argv){
     #else
             denominator = equations::log_poisson(bkg_expected[i], obs_data[i]);
             numerator = equations::log_poisson(sig_expected[i]+bkg_expected[i], obs_data[i]);
-            q_obs += -2 * numerator/denominator;
+            q_obs += 2 * (numerator-denominator);
     #endif
     }
     float *q_toys;
@@ -289,7 +289,7 @@ int frequentist_test(int argc, char **argv){
                 #else
                     denominator = equations::log_poisson(bkg_expected[bin], toy);
                     numerator = equations::log_poisson(sig_expected[bin]+bkg_expected[bin], toy);
-                    q0 += -2 * numerator/denominator;
+                    q0 += 2 * (numerator-denominator);
                 #endif
             }
             if (!out_filename.empty()) q_toys[experiment] = q0;

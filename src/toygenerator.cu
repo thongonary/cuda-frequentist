@@ -83,7 +83,7 @@ void generate_neyman_pearson_toys(float * dev_bkg_expected,
             toy = curand_poisson(&states[tid % nStates], dev_bkg_expected[bin]);
             numerator = log_poisson(dev_bkg_expected[bin]+dev_sig_expected[bin], toy);
             denominator = log_poisson(dev_bkg_expected[bin], toy);
-            sum_log_likelihood += -2 * numerator/denominator;
+            sum_log_likelihood += 2 * (numerator-denominator);
         }
         dev_q_toys[tid] = sum_log_likelihood;
         tid += (blockDim.x * gridDim.x);
@@ -113,7 +113,7 @@ void count_extreme_neyman_pearson(float * dev_bkg_expected,
             toy = curand_poisson(&states[tid % nStates], dev_bkg_expected[bin]);
             numerator = log_poisson(dev_bkg_expected[bin]+dev_sig_expected[bin], toy);
             denominator = log_poisson(dev_bkg_expected[bin], toy);
-            sum_log_likelihood += -2 * numerator/denominator;
+            sum_log_likelihood += 2 * (numerator-denominator);
         }
         if (sum_log_likelihood > q_obs) atomicAdd(dev_larger_gpu, (unsigned int) 1);
         tid += (blockDim.x * gridDim.x);
