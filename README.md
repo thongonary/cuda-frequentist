@@ -3,15 +3,15 @@
 ### 1. Introduction
 This package parallelizes the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA. Two algorithms are implemented: Simple hypothesis test using Neyman-Pearson lemma and Improved chisquare goodness-of-fit test using saturated model from observed data. An example from `resources` directory provides the bin contents of the following histogram:
 
-![Alt text](images/input.png?raw=true "Input")
+<p align="center">
+    <img src="images/input.png">
+</p>
 
 The background Monte Carlo is generated from an exponential distribution <img src="https://render.githubusercontent.com/render/math?math=\frac{1}{100} \exp\left(-\frac{x}{100}\right)">. The signal template is generated from a Gaussian distribution with <img src="https://render.githubusercontent.com/render/math?math=\mu = 125"> and <img src="https://render.githubusercontent.com/render/math?math=\sigma = 20">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
 
 The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_0"> (background only) or the alternative hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_1"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
-<p align="center">
   <img src="https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right">
-</p>
 
 In binned histograms, <img src="https://render.githubusercontent.com/render/math?math=\cal{L}(x, \theta)"> is the Poisson likelihood of the rate parameter <img src="https://render.githubusercontent.com/render/math?math=\theta"> given the observed data <img src="https://render.githubusercontent.com/render/math?math=x">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
