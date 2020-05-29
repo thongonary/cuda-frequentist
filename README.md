@@ -9,10 +9,9 @@ The background Monte Carlo is generated from an exponential distribution <img sr
 
 The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_0"> (background only) or the alternative hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_1"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
-<div align="center">
-![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right))
-</div>
-
+<p align="center">
+  <img src="https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right">
+</p>
 
 In binned histograms, <img src="https://render.githubusercontent.com/render/math?math=\cal{L}(x, \theta)"> is the Poisson likelihood of the rate parameter <img src="https://render.githubusercontent.com/render/math?math=\theta"> given the observed data <img src="https://render.githubusercontent.com/render/math?math=x">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
