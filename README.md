@@ -1,5 +1,26 @@
 ## GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing
 
+
+Table of Contents
+=================
+
+      * [GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing](#gpu-accelerated-toy-monte-carlo-generator-for-frequentist-simple-hypothesis-testing)
+         * [1. Introduction](#1-introduction)
+         * [2. Algorithm Overview](#2-algorithm-overview)
+         * [3. GPU Optimization and Specifics](#3-gpu-optimization-and-specifics)
+            * [Random number dependency](#random-number-dependency)
+            * [Memory overflow](#memory-overflow)
+            * [Coalesced memory access](#coalesced-memory-access)
+            * [Data transfer between host and device](#data-transfer-between-host-and-device)
+         * [4. Code Structure](#4-code-structure)
+         * [5. Execution Instructions](#5-execution-instructions)
+            * [Dependencies](#dependencies)
+            * [Installation](#installation)
+            * [Neyman-Pearson hypothesis testing](#neyman-pearson-hypothesis-testing)
+            * [Improved chisquare goodness-of-fit testing](#improved-chisquare-goodness-of-fit-testing)
+            * [Parameters](#parameters)
+         * [6. Demo Scripts and Outputs](#6-demo-scripts-and-outputs)
+
 ### 1. Introduction
 This package parallelizes the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA. Two algorithms are implemented: Simple hypothesis test using Neyman-Pearson lemma and Improved chisquare goodness-of-fit test using saturated model from observed data. An example from `resources` directory provides the bin contents of the following histogram:
 <p align="center">
@@ -41,16 +62,37 @@ In frequentist method, a distribution of the test statistics <img src="images/fq
     <img src="images/pvalue.gif" >
 </p>
 
-Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a 5<img src="images/sigma.gif"> deviation from the distribution, corresponding to a p-value less than <img src="images/3e-7.gif">. This package parallelizes the Monte Carlo generation step on GPU, providing a speedup of approximately 500 times when running on an NVIDIA GeForce TITAN X against an Intel core 2.6 GHz. 
+Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a 5<img src="images/sigma.gif"> deviation from the distribution, corresponding to a p-value less than <img src="images/3e-7.gif">. This package parallelizes the Monte Carlo generation step on GPU and when running on an NVIDIA GeForce TITAN X against an Intel core 2.6 GHz, provides a speedup of over 400 times.
 
 ### 2. Algorithm Overview
-TBD
+On CPU:
+<ul>
+<li> Compute the observed test statistics <img src="images/q_obs.gif"></li>
+<li> Loop through the number of toys needed to be generated</li>
+<li> For each loop, generated toy dataset following Poisson distributions with respect to the background templates. Compute the test statistics <img src="images/q0.gif"> using either Neyman-Pearson or goodness-of-fit test statistics formula.</li>
+<li> If <img src="images/q0.gif"> \> <img src="images/q_obs.gif">, increase the global counter.</li>
+<li> Obtain the pvalue by dividing the global counter by the number of toys.</li>
+</ul>
+
+On GPU, the loop is replaced with CUDA threads. On each thread, a random seed is initialized based on device clock and the global thread index. `atomicAdd` is performed on the global counter to guarantee no collision between different threads.
 
 ### 3. GPU Optimization and Specifics
-TBD
+#### Random number dependency
+In typical random number generator, the numbers are generated sequentially to guarantee truely random values, causing a dependency problem that is hard to parallelize. In this package, each thread is assigned 1 unique random state and generates only 1 toy, where the random state is initialized based on the device clock and a unique global thread index. Maximum number of threads is used, constrained by number of blocks per grid and the available device memory to allocate 1 unique random states to each thread. When number of toys is greater than number of threads, after the first launch, the global index of each thread is updated and the random state stored in each thread is initialized again, with the new global thread index and clock value, guaranteeing a new unique random toy. 
+
+#### Memory overflow
+If the list of test statistics is kept, the memory needs to allocate a memory space equals to `nToys x sizeof(float)`. If an enormouse amount of toys needs to be generated (more than 100 million), it's not possible to store all in the device memory. A check on the available memory is performed and will be used to split the generation process by batches if necessary. After each batch, the array of test statistics on device is copied to the host memory, freed, and reallocated for the new batch. This process guarantees no memory overflow. 
+
+Another big memory consumption of the program is the array of random states, where each `curandState` takes 40 bytes. Number of random states is set to be `nBlocks x threadsPerBlock`, where `nBlocks` are optimized based on available device memory so that the array of random states never takes more than 95% available memory of the device.
+
+#### Coalesced memory access
+The global memory contains an array of the random state and an array of the test statistics distribution. The accesses to both of these arrays are coalesced, where adjacent threads access adjacent indices of the arrays. Number of blocks is set to be multiples of warp size to avoid misaligned access pattern by warps. 
+
+#### Data transfer between host and device
+As the bandwidth between host and device memory is typically limited, this program minimizes the data transfer between host and device. The input and output are only transferred once throughout the program, with the exception of generation by batches, where the output is transferred back to host after each batch while the input stays in device memory and only gets deleted at the end.
 
 ### 4. Code Structure
-TBD
+The main program is located at [src/toygenerator.cpp](src/toygenerator.cpp), where it calls CUDA kernels at [src/toygenerator.cu](src/toygenerator.cu). The flag `GOF` is specified during compilation (see [Makefile](Makefile)) to determine whether to run goodness-of-fit test or Neyman-Pearson test.
 
 ### 5. Execution Instructions
 
@@ -107,89 +149,88 @@ Usage:
 
 Neyman-Pearson test with 10M Monte Carlo toys, running on both CPU and GPU:
 ```
-$ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7
+./neyman-pearson 40 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e7
 
-[INPUT] Reading 20 bins from background file resources/background_template.txt
-[INPUT] Reading 20 bins from data file resources/observed_data.txt
-[INPUT] Reading 20 bins from signal file resources/signal_template.txt
+[INPUT] Reading 40 bins from background file resources/background_template.txt
+[INPUT] Reading 40 bins from data file resources/observed_data.txt
+[INPUT] Reading 40 bins from signal file resources/signal_template.txt
 
 Generating 10000000 toy experiments to obtain the test statistics distribution on CPU
-  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 62.5 kHz | 160s<0s]
+  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 30.2 kHz | 331s<0s]
 
 Generating 10000000 toy experiments to obtain the test statistics distribution on GPU
-[INFO] Free device memory: 11794/12209 MB
+[INFO] Free device memory: 11795/12209 MB
 +  Using 9765 blocks with 1024 threads per block
 
 Toy-generation run time:
-+ On CPU: 160102 ms
-+ On GPU: 287.618 ms
-Gained a 557-time speedup with GPU
++ On CPU: 330842 ms
++ On GPU: 754.432 ms
+Gained a 439-time speedup with GPU
 
-p-value from Neyman-Pearson hypothesis test: less than 1e-07 (CPU), less than 1e-07 (GPU).
-Rerun with at least 250000000 toys to obtain a more statistically precise result.
+p-value from Neyman-Pearson hypothesis test: 9.6e-06 (CPU), 8.8e-06 (GPU)
 ```
 
 Goodness of fit test with 1e7 Monte Carlo toys, running on both CPU and GPU:
 ```
-$ ./goodness-of-fit 20 resources/background_template.txt resources/observed_data.txt 1e7 --out gof-test --GPUonly 0
+$  ./goodness-of-fit 40 resources/background_template.txt resources/observed_data.txt 1e7 --out gof-test --GPUonly 0
 
 [INPUT] Will save output to disk
-[INPUT] Reading 20 bins from background file resources/background_template.txt
-[INPUT] Reading 20 bins from data file resources/observed_data.txt
+[INPUT] Reading 40 bins from background file resources/background_template.txt
+[INPUT] Reading 40 bins from data file resources/observed_data.txt
 
 Generating 10000000 toy experiments to obtain the test statistics distribution on CPU
-  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 70.5 kHz | 142s<0s]
+  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 33.1 kHz | 302s<0s]
 
 Generating 10000000 toy experiments to obtain the test statistics distribution on GPU
-[INFO] Free device memory: 11756/12209 MB
-+  Using 9765 blocks with 1024 threads per block
+[INFO] Free device memory: 12062/12212 MB
++  Using 9760 blocks with 1024 threads per block
 
 Toy-generation run time:
-+ On CPU: 141799 ms
-+ On GPU: 306.239 ms
-Gained a 463-time speedup with GPU
++ On CPU: 302376 ms
++ On GPU: 712.78 ms
+Gained a 424-time speedup with GPU
 
-Saving the toy experiments' test statistics to gof-test.1681.881348.cpu and gof-test.1681.881348.gpu
-  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 786.3 kHz | 13s<0s]
+Saving the toy experiments' test statistics to gof-test.387.840790.cpu and gof-test.387.840790.gpu
+  ████████████████████████████████████████▏ 100.0% [10000000/10000000 | 771.6 kHz | 13s<0s]
 
-p-value from Goodness-of-fit test: 0.003873 (CPU), 0.0038474 (GPU)
+p-value from Goodness-of-fit test: 0.0304102 (CPU), 0.030267 (GPU)
 ```
 
 Neyman-Pearson test with 2.5 billion Monte Carlo toys, running only on GPU and not writing the output to disk:
 ```
-$ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 2.5e9 --GPUonly 1
+$ ./neyman-pearson 40 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 2.5e9 --GPUonly 1
 
 [INPUT] Use GPU only
-[INPUT] Reading 20 bins from background file resources/background_template.txt
-[INPUT] Reading 20 bins from data file resources/observed_data.txt
-[INPUT] Reading 20 bins from signal file resources/signal_template.txt
+[INPUT] Reading 40 bins from background file resources/background_template.txt
+[INPUT] Reading 40 bins from data file resources/observed_data.txt
+[INPUT] Reading 40 bins from signal file resources/signal_template.txt
 
 Generating 2500000000 toy experiments to obtain the test statistics distribution on GPU
 [INFO] Free device memory: 11794/12209 MB
-+  Using 239035 blocks with 1024 threads per block
-Toy-generation run time on GPU: 67524.4 ms
++  Using 239040 blocks with 1024 threads per block
+Toy-generation run time on GPU: 180124 ms
 
-p-value from Neyman-Pearson hypothesis test: 2.28e-08 (GPU)
+p-value from Neyman-Pearson hypothesis test: 1.07404e-05 (GPU)
 ```
 
 Goodness of fit test with 400M Monte Carlo toys, running only on GPU and saving the output to disk. Note that the generation is done by batches and the writing of 400M floats to disk might take a few minutes:
 ```
-$ ./goodness-of-fit 20 resources/background_template.txt resources/observed_data.txt 4e8 --out gof-test --GPUonly 1
+$ ./goodness-of-fit 40 resources/background_template.txt resources/observed_data.txt 4e8 --out gof-test --GPUonly 1
 
 [INPUT] Will save output to disk
 [INPUT] Use GPU only
-[INPUT] Reading 20 bins from background file resources/background_template.txt
-[INPUT] Reading 20 bins from data file resources/observed_data.txt
+[INPUT] Reading 40 bins from background file resources/background_template.txt
+[INPUT] Reading 40 bins from data file resources/observed_data.txt
 
 Generating 400000000 toy experiments to obtain the test statistics distribution on GPU
 Generating in 2 batches
-+ Batch 1 of 2: Generating 309182464 toys
-	-- Using 215128 blocks with 1024 threads per block
-+ Batch 2 of 2: Generating 90817536 toys
-	-- Using 88689 blocks with 1024 threads per block
-Toy-generation run time on GPU: 11389.7 ms
-Saving the toy experiments' test statistics to gof-test.1681.881348.gpu
-  ████████████████████████████████████████▏ 100.0% [400000000/400000000 | 1.8 MHz | 227s<0s]
++ Batch 1 of 2: Generating 309192295 toys
+	-- Using 215104 blocks with 1024 threads per block
++ Batch 2 of 2: Generating 90807705 toys
+	-- Using 88672 blocks with 1024 threads per block
+Toy-generation run time on GPU: 29031.9 ms
+Saving the toy experiments' test statistics to gof-test.387.840790.gpu
+  ████████████████████████████████████████▏ 100.0% [400000000/400000000 | 1.6 MHz | 245s<0s]
 
-p-value from Goodness-of-fit test: 0.00384817 (GPU)
+p-value from Goodness-of-fit test: 0.0302518 (GPU)
 ```
