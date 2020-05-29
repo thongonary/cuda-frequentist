@@ -10,6 +10,11 @@ The background Monte Carlo is generated from an exponential distribution <img sr
 
 The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="images/H0.gif"> (background only) or the alternative hypothesis <img src="images/H1.gif"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
+<p align="center">
+    <img src="images/NPratio.gif" >
+</p>
+
+
 In binned histograms, <img src="images/L_x_theta.gif"> is the Poisson likelihood of the rate parameter <img src="images/theta.gif"> given the observed data <img src="images/x.gif">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
 <p align="center">
