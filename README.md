@@ -12,17 +12,15 @@ The hypothesis test answers the following question: Is the observed data compati
 
 ![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right))
 
-In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\cal{L}(x,&space;\theta)) is the Poisson likelihood of the rate parameter <img src="https://render.githubusercontent.com/render/math?math=\theta"> given the observed data <img src="https://render.githubusercontent.com/render/math?math=x">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
+In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\mathcal{L}(x,&space;\theta)) is the Poisson likelihood of the rate parameter ![equation](https://latex.codecogs.com/gif.latex?\theta) given the observed data ![equation](https://latex.codecogs.com/gif.latex?x). The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
-<img src="https://render.githubusercontent.com/render/math?math=q_{0} = -2 \sum_i \log \left( \frac {f(x_i, \theta_{i}^{1})}{f(x_i, \theta_{i}^{0})} \right)">
+![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\log&space;\left(&space;\frac&space;{f(x_i,&space;\theta_{i}^{1})}{f(x_i,&space;\theta_{i}^{0})}&space;\right))
 
-where 
-<img src="https://render.githubusercontent.com/render/math?math=f(x_i, \theta_i) = \frac{\theta_i ^ {x_i} e^{-\theta_i}}{x!}">. 
+where ![equation](https://latex.codecogs.com/gif.latex?f(x_i,&space;\theta_i)&space;=&space;\frac{\theta_i&space;^&space;{x_i}&space;e^{-\theta_i}}{x!}) 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins derived the following test statistics using saturated models for Poisson binned histograms:
 
-<img src="https://render.githubusercontent.com/render/math?math=q_{0} = -2 \sum_i \left( \theta_i - x_i + \log \left\( \frac{x_i}{\theta_i} \right) \right)">
-
+![equation(https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\left(&space;\theta_i&space;-&space;x_i&space;&plus;&space;\log&space;\left\(&space;\frac{x_i}{\theta_i}&space;\right)&space;\right))
 
 ### 2. Algorithm Overview
 
