@@ -609,7 +609,6 @@ int frequentist_test(int argc, char **argv){
     if (out_filename.empty())
     {
         CUDA_CALL(cudaMemcpy(larger_gpu, dev_larger_gpu, sizeof(unsigned int), cudaMemcpyDeviceToHost));
-        CUDA_CALL(cudaFree(dev_larger_gpu));
     }
 
     // ******************************************************
@@ -649,6 +648,7 @@ int frequentist_test(int argc, char **argv){
             bar2.finish();
             file_cpu.close();
             file_gpu.close();
+            free(host_q_toys);
         }
         
         std::cout << std::endl;
@@ -674,7 +674,6 @@ int frequentist_test(int argc, char **argv){
             std::cout << "Rerun with at least " << needed << " toys to obtain a more statistically precise result.\n";
         }
         // Free memory on host
-        free(host_q_toys);
         free(bkg_expected);
         free(obs_data);
 
@@ -726,6 +725,7 @@ int frequentist_test(int argc, char **argv){
     // Free memory on GPU
     CUDA_CALL(cudaFree(dev_bkg_expected));
     CUDA_CALL(cudaFree(dev_obs_data));
+    CUDA_CALL(cudaFree(dev_larger_gpu));
 
     return EXIT_SUCCESS;
 
