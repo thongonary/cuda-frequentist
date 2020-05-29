@@ -46,7 +46,7 @@ Usage:
 
 ### Example running commands and outputs
 
-Neyman-Pearson test with 1e6 Monte Carlo toys, running on both CPU and GPU
+Neyman-Pearson test with 1e6 Monte Carlo toys, running on both CPU and GPU:
 ```
 $ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 1e6
 
@@ -70,7 +70,7 @@ p-value from Neyman-Pearson hypothesis test: less than 1e-06 (CPU), less than 1e
 Rerun with at least 25000000 toys to obtain a more statistically precise result.
 ```
 
-Goodness of fit test with 1e7 Monte Carlo toys, running only on both CPU and GPU
+Goodness of fit test with 1e7 Monte Carlo toys, running on both CPU and GPU:
 ```
 $ ./goodness-of-fit 20 resources/background_template.txt resources/observed_data.txt 1e7 --out gof-test --GPUonly 0
 
@@ -96,7 +96,7 @@ Saving the toy experiments' test statistics to gof-test.1681.881348.cpu and gof-
 p-value from Goodness-of-fit test: 0.003873 (CPU), 0.0038474 (GPU)
 ```
 
-Neyman-Pearson test with 2.5 billion Monte Carlo toys, running only on GPU and not writing the output to disk. 
+Neyman-Pearson test with 2.5 billion Monte Carlo toys, running only on GPU and not writing the output to disk:
 ```
 $ ./neyman-pearson 20 resources/background_template.txt resources/signal_template.txt resources/observed_data.txt 2.5e9 --GPUonly 1
 
@@ -113,7 +113,7 @@ Toy-generation run time on GPU: 67524.4 ms
 p-value from Neyman-Pearson hypothesis test: 2.28e-08 (GPU)
 ```
 
-Goodness of fit test with 400M Monte Carlo toys, running only on GPU and saving the output to disk. Note that the generation is done by batches and the writing of 400M floating values to disk might take a few minutes
+Goodness of fit test with 400M Monte Carlo toys, running only on GPU and saving the output to disk. Note that the generation is done by batches and the writing of 400M floats to disk might take a few minutes:
 ```
 $ ./goodness-of-fit 20 resources/background_template.txt resources/observed_data.txt 4e8 --out gof-test --GPUonly 1
 
