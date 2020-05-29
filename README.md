@@ -6,7 +6,7 @@ This package parallelizes the Monte Carlo simulation of the test statistics used
     <img src="images/input.png" width="1000">
 </p>
 
-The background Monte Carlo is generated from an exponential distribution <img src="images/exponential.gif">. The signal template is generated from a Gaussian distribution with <img src="images/mu125.gif"> and <img src="sigma20.gif">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
+The background Monte Carlo is generated from an exponential distribution <img src="images/exponential.gif">. The signal template is generated from a Gaussian distribution with <img src="images/mu125.gif"> and <img src="images/sigma20.gif">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
 
 The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="images/H0.gif"> (background only) or the alternative hypothesis <img src="images/H1.gif"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
@@ -23,6 +23,7 @@ where
 <p align="center">
     <img src="images/poisson.gif" >,
 </p>
+
 and <img src="images/i.gif"> is the index of each bin. 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([Nucl. Instrum. Meth., 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
