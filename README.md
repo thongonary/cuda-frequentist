@@ -41,7 +41,7 @@ In frequentist method, a distribution of the test statistics <img src="images/fq
     <img src="images/pvalue.gif" >
 </p>
 
-Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a 5<img src="images/sigma.gif"> deviation from the distribution, corresponding to a p-value less than <img src="images/3e-7.gif">. This package parallelizes the Monte Carlo generation step on GPU, providing a speedup of approximately 500 times when evaluated against a single CPU core.   
+Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a 5<img src="images/sigma.gif"> deviation from the distribution, corresponding to a p-value less than <img src="images/3e-7.gif">. This package parallelizes the Monte Carlo generation step on GPU, providing a speedup of approximately 500 times when running on an NVIDIA GeForce TITAN X against an Intel core 2.6 GHz. 
 
 ### 2. Algorithm Overview
 TBD
