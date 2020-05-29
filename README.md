@@ -4,7 +4,7 @@
 This package parallelizes the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA. Two algorithms are implemented: Simple hypothesis test using Neyman-Pearson lemma and Improved chisquare goodness-of-fit test using saturated model from observed data. An example from `resources` directory provides the bin contents of the following histogram:
 
 <p align="center">
-    <img src="images/input.png" width="200">
+    <img src="images/input.png" width="1000">
 </p>
 
 The background Monte Carlo is generated from an exponential distribution <img src="https://render.githubusercontent.com/render/math?math=\frac{1}{100} \exp\left(-\frac{x}{100}\right)">. The signal template is generated from a Gaussian distribution with <img src="https://render.githubusercontent.com/render/math?math=\mu = 125"> and <img src="https://render.githubusercontent.com/render/math?math=\sigma = 20">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
