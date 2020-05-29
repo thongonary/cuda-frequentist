@@ -18,6 +18,8 @@
     * [Improved chisquare goodness-of-fit testing](#improved-chisquare-goodness-of-fit-testing)
     * [Parameters:](#parameters)
 * [6. Demo Scripts and Outputs](#6-demo-scripts-and-outputs)
+* [7. Result Validation](#7-result-validation)
+
 
 ### 1. Introduction
 This package parallelizes the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA. Two algorithms are implemented: Simple hypothesis test using Neyman-Pearson lemma and Improved chisquare goodness-of-fit test using saturated model from observed data. An example from [resources](resources) directory provides the bin contents of the following histogram:
