@@ -6,15 +6,15 @@ This package parallelizes the Monte Carlo simulation of the test statistics used
     <img src="images/input.png" width="1000">
 </p>
 
-The background Monte Carlo is generated from an exponential distribution <img src="https://render.githubusercontent.com/render/math?math=\frac{1}{100} \exp\left(-\frac{x}{100}\right)">. The signal template is generated from a Gaussian distribution with <img src="https://render.githubusercontent.com/render/math?math=\mu = 125"> and <img src="https://render.githubusercontent.com/render/math?math=\sigma = 20">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
+The background Monte Carlo is generated from an exponential distribution <img src="images/exponential.gif">. The signal template is generated from a Gaussian distribution with <img src="images/mu125.gif"> and <img src="sigma20.gif">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
 
-The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_0"> (background only) or the alternative hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_1"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
+The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="images/H0.gif"> (background only) or the alternative hypothesis <img src="images/H1.gif"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
 <p align="center">
     <img src="images/NPratio.gif" >
 </p>
 
-In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\mathcal{L}(x,&space;\theta)) is the Poisson likelihood of the rate parameter ![equation](https://latex.codecogs.com/gif.latex?\theta) given the observed data ![equation](https://latex.codecogs.com/gif.latex?x). The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
+In binned histograms, <img src="images/L_x_theta.gif"> is the Poisson likelihood of the rate parameter <img src="images/theta.gif"> given the observed data <img src="images/x.gif">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
 <p align="center">
     <img src="images/NPratio_sum.gif" >,
@@ -23,7 +23,7 @@ where
 <p align="center">
     <img src="images/poisson.gif" >,
 </p>
-and ![equation](https://latex.codecogs.com/gif.latex?i) is the index of each bin. 
+and <img src="images/i.gif"> is the index of each bin. 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([Nucl. Instrum. Meth., 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
 
@@ -33,7 +33,7 @@ The goodness-of-fit test, on the other hand, only evalutes the compatibility of 
  
 where the saturated model of the data is taken as the alternative hypothesis. This test statistics can be interpreted as the upper bound for the family of alternative hypothesis distributions.
 
-In frequentist method, a distribution of the test statistics ![equation](https://latex.codecogs.com/gif.latex?f(q)) is generated numerically from Monte Carlo algorithm. Each toy data is generated randomly from a Poisson distribution of each bin in the null hypothesis, then evaluated against either the Neyman-Pearson log likehood ratio or the Goodness-of-fit formula to obtain the test statistics ![equation](https://latex.codecogs.com/gif.latex?q_0). The observed data ![equation](https://latex.codecogs.com/gif.latex?q_{obs}) is obtained similarly. The p-value is then computed as:
+In frequentist method, a distribution of the test statistics <img src="images/fq.gif"> is generated numerically from Monte Carlo algorithm. Each toy data is generated randomly from a Poisson distribution of each bin in the null hypothesis, then evaluated against either the Neyman-Pearson log likehood ratio or the Goodness-of-fit formula to obtain the test statistics <img src="images/q0.gif">. The observed data test statistics <img src="images/q_obs.gif"> is obtained similarly from the provided input. The p-value is then computed as:
 
 <p align="center">
     <img src="images/pvalue.gif" >
