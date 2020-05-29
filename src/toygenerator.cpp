@@ -83,6 +83,7 @@ int frequentist_test(int argc, char **argv){
     //                GETTING INPUTS
     // ******************************************************
     
+    // Check the validity of inputs
     unsigned long ntoys;
     #if GOF == 0
         try
@@ -239,20 +240,21 @@ int frequentist_test(int argc, char **argv){
     unsigned int * larger_cpu;
     larger_cpu = (unsigned int*) malloc(sizeof(unsigned int));
     memset(larger_cpu, 0, sizeof(unsigned int));
+    
     // Compute test statistics for the observed data
     #if GOF == 0
         float denominator, numerator;
     #endif
         for (int i = 0; i < n_bins; i++)
         {
-    #if GOF
+        #if GOF
             q_obs += equations::chisquare(bkg_expected[i], obs_data[i]);
-    #else
+        #else
             denominator = equations::log_poisson(bkg_expected[i], obs_data[i]);
             numerator = equations::log_poisson(sig_expected[i]+bkg_expected[i], obs_data[i]);
             q_obs += 2 * (numerator-denominator);
-    #endif
-    }
+        #endif
+        }
     float *q_toys;
     float q0;
     if (GPUonly == 0)
@@ -293,7 +295,7 @@ int frequentist_test(int argc, char **argv){
                 #endif
             }
             if (!out_filename.empty()) q_toys[experiment] = q0;
-            else // if not save the output distribution, compute the p-value directly on the fly
+            else // If not save the output distribution, compute the p-value directly on the fly. Otherwise the p-value will be computed in the end of the program during writing to disk.
             {
                 if (q0 > q_obs) (*larger_cpu)++;
             }
@@ -400,8 +402,6 @@ int frequentist_test(int argc, char **argv){
         // Allocate space for prng states on device
         unsigned int nStates = nBlocks * threadsPerBlock;
         CUDA_CALL(cudaMalloc((void **) &devStates, nStates * sizeof(curandState)));
-        
-        //nBlocks = 900;
         
         printf("+  Using %d blocks with %d threads per block\n", nBlocks, threadsPerBlock);
         
@@ -642,6 +642,7 @@ int frequentist_test(int argc, char **argv){
         float speed_up = cpu_time_ms/gpu_time_ms;
         printf("Gained a %.0f-time speedup with GPU\n", speed_up);
        
+        // Write output to disk if output file name is specified
         if (!out_filename.empty()) 
         {
             out_cpu = out_filename;
@@ -683,6 +684,8 @@ int frequentist_test(int argc, char **argv){
             std::cout << "less than " << 1/float(ntoys) << " (GPU).\n";
         else
             std::cout << pval_gpu << " (GPU)\n";
+
+        // A reliable p-value requires a statistically significant number of q0 above the q_obs threshold
         if (*larger_cpu <= 25 || *larger_gpu <= 25) 
         {
             unsigned long needed = ntoys * std::max((float) 25.0/(std::max((*larger_cpu),(unsigned int) 1)), (float) 25.0/(std::max((*larger_gpu),(unsigned int) 1)));
@@ -729,6 +732,8 @@ int frequentist_test(int argc, char **argv){
             std::cout << "less than " << 1/float(ntoys) << " (GPU).\n";
         else
             std::cout << pval_gpu << " (GPU)\n";
+        
+        // A reliable p-value requires a statistically significant number of q0 above the q_obs threshold
         if (*larger_gpu <= 25)
         { 
             if (*larger_gpu < 1) *larger_gpu = 1;
