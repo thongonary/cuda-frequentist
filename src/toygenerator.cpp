@@ -83,12 +83,41 @@ int frequentist_test(int argc, char **argv){
     //                GETTING INPUTS
     // ******************************************************
     
+    unsigned long ntoys;
     #if GOF == 0
-        unsigned long ntoys = (unsigned long) std::stof(argv[5]); // number of toy experiments
+        try
+        {
+            ntoys = std::stof(argv[5]); // number of toy experiments
+        }
+        catch (const std::invalid_argument& ia)
+        {
+            std::cerr << "Invalid argument for number of toys: " << argv[5] << ". Must be a number\n" << std::endl;
+            return 1;
+        }
+        catch (const std::out_of_range& oor)
+        {
+            std::cerr << "Invalid argument for number of toys: " << argv[5] << ". Must be a number.\n";
+            return 1;
+        }
+
         std::string obs_filename = argv[4];
         std::string sig_filename = argv[3];
     #else
-        unsigned long ntoys = (unsigned long) std::stof(argv[4]); // number of toy experiments
+        try
+        {
+            ntoys = std::stof(argv[4]); // number of toy experiments
+        }
+        catch (const std::invalid_argument& ia)
+        {
+            std::cerr << "Invalid argument for number of toys: " << argv[4] << ". Must be a number\n" << std::endl;
+            return 1;
+        }
+        catch (const std::out_of_range& oor)
+        {
+            std::cerr << "Invalid argument for number of toys: " << argv[4] << ". Must be a number.\n";
+            return 1;
+        }
+
         std::string obs_filename = argv[3];
     #endif
     
@@ -114,9 +143,23 @@ int frequentist_test(int argc, char **argv){
         else if (std::string(argv[i]) == "--GPUonly")
         {
             if (i+1 < argc)
-            { 
-                GPUonly = std::stoi(argv[i + 1]);
-                if (GPUonly == 1) std::cout << "[INPUT] Use GPU only\n";
+            {
+                try
+                { 
+                    GPUonly = std::stoi(argv[i + 1]);
+                    if (GPUonly != 1 && GPUonly !=0) throw std::out_of_range(argv[i+1]);
+                    if (GPUonly == 1) std::cout << "[INPUT] Use GPU only\n";
+                }
+                catch (const std::invalid_argument& ia)
+                {
+                    std::cerr << "Invalid argument for --GPUonly: " << argv[i+1] <<  ". Acceptable value is either 0 or 1.\n";
+                    return 1;
+                }
+                catch (const std::out_of_range& oor)
+                {
+                    std::cerr << "Invalid argument for --GPUonly: " << argv[i+1] << ". Acceptable value is either 0 or 1.\n";
+                    return 1;
+                }
             }
             else
             {
@@ -126,7 +169,21 @@ int frequentist_test(int argc, char **argv){
         } 
     }
 
-    static const int n_bins = std::stoi(argv[1]);
+    int n_bins;
+    try
+    {
+        n_bins = std::stoi(argv[1]);
+    }
+    catch (const std::invalid_argument& ia)
+    {
+        std::cerr << "Invalid argument for number of bins: " << argv[1] << ". Must be a number\n" << std::endl;
+        return 1;
+    }
+    catch (const std::out_of_range& oor)
+    {
+        std::cerr << "Invalid argument for number of bins: " << argv[1] << ". Must be a number.\n";
+        return 1;
+    }
 
     std::ifstream bkg_file(argv[2]);
     float *bkg_expected = (float*) malloc(sizeof(float) * n_bins);
