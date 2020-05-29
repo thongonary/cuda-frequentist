@@ -36,11 +36,11 @@ Usage:
 ### Parameters:
 <ul>
 <li> <code>number of bins</code>: Number of bins used in the histograms for the test. The provided examples in <code>resources</code> directory use 20 bins. </li>
-<li> <code>background template file</code>: A text file containing the count of each bin in the background template histogram. Example can be found in <code>resources/background_template.txt</code>. </li>
-<li> <code>signal template file</code>: A text file containing the count of each bin in the signal template histogram. Only required for Neyman-Pearson hypothesis test. Example can be found in <code>resources/signal_template.txt</code>. </li>
-<li> <code>observed data file</code>: A text file containing the count of each bin in the observed data histogram. Example can be found in <code>resources/observed_data.txt</code>. </li>
+<li> <code>background template file</code>: A text file containing the count of each bin in the background template histogram. An example can be found in <code>resources/background_template.txt</code>. </li>
+<li> <code>signal template file</code>: A text file containing the count of each bin in the signal template histogram. Only required for Neyman-Pearson hypothesis test. An example can be found in <code>resources/signal_template.txt</code>. </li>
+<li> <code>observed data file</code>: A text file containing the count of each bin in the observed data histogram. An example can be found in <code>resources/observed_data.txt</code>. </li>
 <li> <code>number of toys</code>: Number of toy Monte Carlo simulation to obtain the test statistics distribution. For a large number of toys (above 1e8), depending on the available device memory, the generation on GPU may be done by batches if the output is kept with the <code>--out</code> option. </li>
-<li> <code>--out [string]</code> (optional): Destination to save the generated test statistics. Note that for a large number of toys (above 1e7), saving the output to disk may take a long time depending on the disk IO. The output name will be appended with <code>X.dev</code>, where <code>X</code> is the value of the test statistics for observed data and <code>dev</code> is either <code>cpu</code> or <code>gpu</code>, indicating whether the result is generated with CPU or GPU, respectively. If this option is not specified, the generated test statistics will not be kept and only the p-value will be computed.</li>
+<li> <code>--out [string]</code> (optional): Destination to save the generated test statistics. Note that for a large number of toys (above 1e7), saving the output to disk may take a long time depending on the disk IO. The output name will be appended with <code>X.dev</code>, where <code>X</code> is the value of test statistics for the observed data and <code>dev</code> is either <code>cpu</code> or <code>gpu</code>, indicating whether the result is generated with CPU or GPU, respectively. If this option is not specified, the generated test statistics will not be kept and only the p-value will be computed.</li>
 <li> <code>--GPUonly [integer]</code> (optional): Whether to run the generation only on GPU. </li>
 </ul>
 
