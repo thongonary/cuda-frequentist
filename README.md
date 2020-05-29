@@ -5,18 +5,19 @@ This package parallelizes the Monte Carlo simulation of the test statistics used
 
 ![Alt text](images/input.png?raw=true "Input")
 
-The background Monte Carlo is generated from an exponential distribution <img src="https://render.githubusercontent.com/render/math?math=1/100 \exp\left(-\frac{x}{100}\right)">. The signal template is generated from a Gaussian distribution with <img src="https://render.githubusercontent.com/render/math?math=\mu = 125"> and <img src="https://render.githubusercontent.com/render/math?math=\sigma = 20">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
+The background Monte Carlo is generated from an exponential distribution <img src="https://render.githubusercontent.com/render/math?math=\frac{1}{100} \exp\left(-\frac{x}{100}\right)">. The signal template is generated from a Gaussian distribution with <img src="https://render.githubusercontent.com/render/math?math=\mu = 125"> and <img src="https://render.githubusercontent.com/render/math?math=\sigma = 20">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation equals to square root of the bin count.
 
-The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_0"> (background only) or the alternative hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_1"> (signal+background)? The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
+The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_0"> (background only) or the alternative hypothesis <img src="https://render.githubusercontent.com/render/math?math=H_1"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
-<img src="https://render.githubusercontent.com/render/math?math=q_{0} = -2 \log \left( \frac {\mathcal{L}(x, H_1)}{\mathcal{L}(x, H_0)} \right)">
+![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right))
 
-In binned histograms, <img src="https://render.githubusercontent.com/render/math?math=\mathcal{L}(x, \theta)"> is the Poisson likelihood of the rate parameter <img src="https://render.githubusercontent.com/render/math?math=\theta"> given the observed data <img src="https://render.githubusercontent.com/render/math?math=x">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
-<img src="https://render.githubusercontent.com/render/math?math=q_{0} = -2 \sum_i \log \left( \frac {f(x_i, \theta_{1, i})}{f(x_i, \theta_{0, i})} \right)">
+In binned histograms, <img src="https://render.githubusercontent.com/render/math?math=\cal{L}(x, \theta)"> is the Poisson likelihood of the rate parameter <img src="https://render.githubusercontent.com/render/math?math=\theta"> given the observed data <img src="https://render.githubusercontent.com/render/math?math=x">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
+
+<img src="https://render.githubusercontent.com/render/math?math=q_{0} = -2 \sum_i \log \left( \frac {f(x_i, \theta_{i}^{1})}{f(x_i, \theta_{i}^{0})} \right)">
 
 where 
-<img src="https://render.githubusercontent.com/render/math?math=f(x_i, \theta_i) = \frac{\theta_i ^ x_i e^{-\theta_i}}{x!}">. 
+<img src="https://render.githubusercontent.com/render/math?math=f(x_i, \theta_i) = \frac{\theta_i ^ {x_i} e^{-\theta_i}}{x!}">. 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins derived the following test statistics using saturated models for Poisson binned histograms:
 
