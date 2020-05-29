@@ -14,13 +14,13 @@ The hypothesis test answers the following question: Is the observed data compati
 
 In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\mathcal{L}(x,&space;\theta)) is the Poisson likelihood of the rate parameter ![equation](https://latex.codecogs.com/gif.latex?\theta) given the observed data ![equation](https://latex.codecogs.com/gif.latex?x). The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
-![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\log&space;\left(&space;\frac&space;{f(x_i,&space;\theta_{i}^{1})}{f(x_i,&space;\theta_{i}^{0})}&space;\right))
+![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\log&space;\left(&space;\frac&space;{f(x_i,&space;\theta_{i}^{1})}{f(x_i,&space;\theta_{i}^{0})}&space;\right)), where 
 
-where ![equation](https://latex.codecogs.com/gif.latex?f(x_i,&space;\theta_i)&space;=&space;\frac{\theta_i&space;^&space;{x_i}&space;e^{-\theta_i}}{x!}) 
+![equation](https://latex.codecogs.com/gif.latex?f(x_i,&space;\theta_i)&space;=&space;\frac{\theta_i&space;^&space;{x_i}&space;e^{-\theta_i}}{x!}) 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins derived the following test statistics using saturated models for Poisson binned histograms:
 
-![equation(https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\left(&space;\theta_i&space;-&space;x_i&space;&plus;&space;\log&space;\left\(&space;\frac{x_i}{\theta_i}&space;\right)&space;\right))
+![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\sum_i&space;\left(&space;\theta_i&space;-&space;x_i&space;&plus;&space;\log&space;\left\(&space;\frac{x_i}{\theta_i}&space;\right)&space;\right))
 
 ### 2. Algorithm Overview
 
