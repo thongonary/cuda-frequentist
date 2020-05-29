@@ -2,7 +2,7 @@
 
 ### 1. Introduction
 This package parallelizes the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA. Two algorithms are implemented: Simple hypothesis test using Neyman-Pearson lemma and Improved chisquare goodness-of-fit test using saturated model from observed data. An example from `resources` directory provides the following input:
-
+![Alt text](images/input.png?raw=true "Input")
 
 
 ### 2. Algorithm Overview
