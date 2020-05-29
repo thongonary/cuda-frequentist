@@ -1,11 +1,21 @@
 ## GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing
 
+### 1. Introduction
+This package parallelizes the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA. Two algorithms are implemented: Simple hypothesis test using Neyman-Pearson lemma and Improved chisquare goodness-of-fit test using saturated model from observed data. An example from `resources` directory provides the following input:
 
-This projects aims to parallelize the Monte Carlo simulation of the test statistics used in frequentist hypothesis testing for binned histograms using CUDA.
+![Alt text](images/input.png?raw=true "Input")
 
-The following 2 scenarios are implemented: 
 
-### 1. Neyman-Pearson hypothesis testing
+### 2. Algorithm Overview
+
+
+### 3. GPU Optimization and Specifics
+
+### 4. Code Structure
+
+### 5. Execution Instructions
+
+#### Neyman-Pearson hypothesis testing
 The alternative hypothesis is explicitly required, ie, signal templated needs to be provided.
 
 Usage: 
@@ -19,7 +29,7 @@ Usage:
                      [--GPUonly <0 or 1> (optional)] 
 ```
 
-### 2. Improved chisquare goodness-of-fit testing
+#### Improved chisquare goodness-of-fit testing
 The saturated model is used as the alternative hypothesis, therefore no signal template is required.
 
 Usage:
@@ -33,7 +43,7 @@ Usage:
                      [--GPUonly <0 or 1> (optional)] 
 ```
 
-### Parameters:
+#### Parameters:
 <ul>
 <li> <code>number of bins</code>: Number of bins used in the histograms for the test. The provided examples in <code>resources</code> directory use 20 bins. </li>
 <li> <code>background template file</code>: A text file containing the count of each bin in the background template histogram. An example can be found in <code>resources/background_template.txt</code>. </li>
@@ -44,7 +54,7 @@ Usage:
 <li> <code>--GPUonly [integer]</code> (optional): Whether to run the generation only on GPU. </li>
 </ul>
 
-### Example running commands and outputs
+### 6. Demo Scripts and Outputs 
 
 Neyman-Pearson test with 1e6 Monte Carlo toys, running on both CPU and GPU:
 ```
