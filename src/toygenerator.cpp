@@ -358,7 +358,7 @@ int frequentist_test(int argc, char **argv){
         if (ntoys * sizeof(float) > 0.1 * freeMem)
         {
             batch_toys = ceil(0.1 * freeMem / sizeof(float)); // Number of toys generated per batch
-            nbatches = ceil(ntoys / batch_toys); // Number of batches
+            nbatches = ceil(float(ntoys) / batch_toys); // Number of batches
         }
     }
 
@@ -665,10 +665,14 @@ int frequentist_test(int argc, char **argv){
         else
             std::cout << pval_cpu << " (CPU), ";
         if ((*larger_gpu) == 0)
-            std::cout << "less than " << 1/float(ntoys) << " (GPU)\n";
+            std::cout << "less than " << 1/float(ntoys) << " (GPU).\n";
         else
             std::cout << pval_gpu << " (GPU)\n";
-
+        if (*larger_cpu <= 25 || *larger_gpu <= 25) 
+        {
+            unsigned long needed = ntoys * std::max((float) 25.0/(std::max((*larger_cpu),(unsigned int) 1)), (float) 25.0/(std::max((*larger_gpu),(unsigned int) 1)));
+            std::cout << "Rerun with at least " << needed << " toys to obtain a more statistically precise result.\n";
+        }
         // Free memory on host
         free(host_q_toys);
         free(bkg_expected);
@@ -708,10 +712,15 @@ int frequentist_test(int argc, char **argv){
             std::cout << "p-value from Neyman-Pearson hypothesis test: ";
         #endif
         if ((*larger_gpu) == 0)
-            std::cout << "less than " << 1/float(ntoys) << " (GPU)\n";
+            std::cout << "less than " << 1/float(ntoys) << " (GPU).\n";
         else
             std::cout << pval_gpu << " (GPU)\n";
-        
+        if (*larger_gpu <= 25)
+        { 
+            if (*larger_gpu < 1) *larger_gpu = 1;
+            unsigned long needed = ntoys * (float) 25.0/(std::max((*larger_gpu),(unsigned int) 1));
+            std::cout << "Rerun with at least " << needed << " toys to obtain a more statistically precise result.\n";
+        }
 
     }
     // Free memory on GPU
