@@ -395,7 +395,7 @@ int frequentist_test(int argc, char **argv){
         else
         {
             // Use block size as multiple of warp size to align access pattern 
-            unsigned int multiple = ceil(nBlocks / warpSize);
+            unsigned int multiple = ceil((float) nBlocks / warpSize);
             nBlocks = warpSize * multiple;
         }
         
@@ -540,7 +540,7 @@ int frequentist_test(int argc, char **argv){
             else
             {
                 // Use block size as multiple of warp size to align access pattern 
-                unsigned int multiple = ceil(nBlocks / warpSize);
+                unsigned int multiple = ceil((float) nBlocks / warpSize);
                 nBlocks = warpSize * multiple;
             }
 
