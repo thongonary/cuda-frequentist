@@ -12,7 +12,7 @@ The hypothesis test answers the following question: Is the observed data compati
 
 ![equation](https://latex.codecogs.com/gif.latex?q_{0}&space;=&space;-2&space;\log&space;\left(&space;\frac&space;{\mathcal{L}&space;(x,&space;H_1)}{\mathcal{L}&space;(x,&space;H_0)}&space;\right))
 
-In binned histograms, <img src="https://render.githubusercontent.com/render/math?math=\cal{L}(x, \theta)"> is the Poisson likelihood of the rate parameter <img src="https://render.githubusercontent.com/render/math?math=\theta"> given the observed data <img src="https://render.githubusercontent.com/render/math?math=x">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
+In binned histograms, ![equation](https://latex.codecogs.com/gif.latex?\cal{L}(x,&space;\theta)) is the Poisson likelihood of the rate parameter <img src="https://render.githubusercontent.com/render/math?math=\theta"> given the observed data <img src="https://render.githubusercontent.com/render/math?math=x">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
 <img src="https://render.githubusercontent.com/render/math?math=q_{0} = -2 \sum_i \log \left( \frac {f(x_i, \theta_{i}^{1})}{f(x_i, \theta_{i}^{0})} \right)">
 
