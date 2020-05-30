@@ -136,7 +136,7 @@ Usage:
 
 #### Parameters:
 <ul>
-<li> <code>number of bins</code>: Number of bins used in the histograms for the test. The provided examples in [resources](resources) directory use 20 bins. </li>
+<li> <code>number of bins</code>: Number of bins used in the histograms for the test. The provided examples in <a href="resources"> resources directory </a> use 20 bins. </li>
 <li> <code>background template file</code>: A text file containing the count of each bin in the background template histogram. An example can be found in [resources/background_template.txt](resources/background_template.txt). </li>
 <li> <code>signal template file</code>: A text file containing the count of each bin in the signal template histogram. Only required for Neyman-Pearson hypothesis test. An example can be found in [resources/signal_template.txt](resources/signal_template.txt). </li>
 <li> <code>observed data file</code>: A text file containing the count of each bin in the observed data histogram. An example can be found in [resources/observed_data.txt](resources/observed_data.txt). </li>
