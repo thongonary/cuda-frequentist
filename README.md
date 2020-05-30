@@ -27,7 +27,7 @@ This package parallelizes the Monte Carlo simulation of the test statistics used
     <img src="images/input.png" width="1000">
 </p>
 
-The background Monte Carlo is generated from an exponential distribution <img src="images/exponential.gif">. The signal template is generated from a Gaussian distribution <img src="images/gaussian.gif"> where <img src="images/sigma.gif"> = 5. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation proportional to square root of the bin count.
+The background Monte Carlo is generated from an exponential distribution <img src="images/exponential.gif">. The signal template is generated from a Gaussian distribution <img src="images/gaussian.gif">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation proportional to square root of the bin count.
 
 The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="images/H0.gif"> (background only) or the alternative hypothesis <img src="images/H1.gif"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
@@ -62,7 +62,7 @@ In frequentist method, a distribution of the test statistics <img src="images/fq
     <img src="images/pvalue.gif" >
 </p>
 
-Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a 5<img src="images/sigma.gif"> deviation from the distribution, corresponding to a p-value less than <img src="images/3e-7.gif">. This package parallelizes the Monte Carlo generation step on GPU and when running on an NVIDIA GeForce TITAN X against an Intel core 2.6 GHz, provides a speedup of over 400 times.
+Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a 5<img src="images/sigma.gif"> deviation from the distribution, corresponding to a p-value less than <img src="images/3e-7.gif">. This package parallelizes the Monte Carlo generation step on GPU and when running on an NVIDIA GeForce TITAN X against an Intel core 3.0 GHz, provides a speedup of over 400 times.
 
 ### 2. Algorithm Overview
 On CPU:
