@@ -69,7 +69,7 @@ On CPU:
 <ul>
 <li> Compute the observed test statistics <img src="images/q_obs.gif"></li>
 <li> Loop through the number of toys needed to be generated</li>
-<li> For each loop, generated toy dataset following Poisson distributions with respect to the background templates. Compute the test statistics <img src="images/q0.gif"> using either Neyman-Pearson or goodness-of-fit test statistics formula.</li>
+<li> For each loop, generated toy dataset following Poisson distributions with respect to the background templates <img src="images/H0.gif">. Compute the test statistics <img src="images/q0.gif"> using either Neyman-Pearson or goodness-of-fit test statistics formula.</li>
 <li> If <img src="images/q0.gif"> > <img src="images/q_obs.gif">, increase the global counter.</li>
 <li> Obtain the pvalue by dividing the global counter by the number of toys.</li>
 </ul>
