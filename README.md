@@ -1,6 +1,6 @@
 ## GPU-Accelerated Toy Monte-Carlo Generator for Frequentist Simple Hypothesis Testing
 
-Author: Thong Q. Nguyen, who got bored during COVID lockdown, decided to learn GPU programming and wrote this ~~to flex his skills~~ for fun. 
+Author: Thong Q. Nguyen
 
 ### Table of Contents
 
