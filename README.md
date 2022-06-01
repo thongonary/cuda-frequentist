@@ -40,25 +40,21 @@ $$ q_0 = 2 \sum_i \log{\frac{f(x_i, \theta_i^1)}{f(x_i, \theta_i^0)}},$$
 
 where
 
-$f(x_i, \theta_i) = \frac{\theta_i^{x_i}e^{-\theta_i}}{x_i!}$
+$$f(x_i, \theta_i) = \frac{\theta_i^{x_i}e^{-\theta_i}}{x_i!}$$
 
-is the Poisson likelihood and <img src="images/i.gif"> is the index of each bin. 
+is the Poisson likelihood and $i$ is the index of each bin. 
 
 The goodness-of-fit test, on the other hand, only evalutes the compatibility of the observed data with the null hypothesis. Steve Baker and Bob Cousins ([Nucl. Instrum. Meth., 1984](https://www.sciencedirect.com/science/article/abs/pii/0167508784900164)) derived the following test statistics using saturated models for Poisson binned histograms:
 
-<p align="center">
-    <img src="images/GOF_formula.gif" >
-</p>
+$$ q_0 = -2 \sum_i \left( \theta_i - x_i + \log {\frac{x_i}{\theta_i}} \right),$$
  
 where the saturated model of the data is taken as the alternative hypothesis. This test statistics can be interpreted as the upper bound for the family of alternative hypothesis distributions.
 
-In frequentist method, a distribution of the test statistics <img src="images/fq.gif"> is generated numerically from Monte Carlo algorithm. Each toy data is generated randomly from a Poisson distribution of each bin in the null hypothesis, then evaluated against either the Neyman-Pearson log likehood ratio or the Goodness-of-fit formula to obtain the test statistics <img src="images/q0.gif">. The observed data test statistics <img src="images/q_obs.gif"> is obtained similarly from the provided input. The p-value is then computed as:
+In frequentist method, a distribution of the test statistics $f(q)$ is generated numerically from Monte Carlo algorithm. Each toy data is generated randomly from a Poisson distribution of each bin in the null hypothesis, then evaluated against either the Neyman-Pearson log likehood ratio or the Goodness-of-fit formula to obtain the test statistics $q_0$. The observed data test statistics $q_{\textrm{obs}}$ is obtained similarly from the provided input. The p-value is then computed as:
 
-<p align="center">
-    <img src="images/pvalue.gif" >
-</p>
+$$ \textrm{p-value} = \int_{q_{\textrm{obs}}}^\infty f(q) dq$$
 
-Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a 5<img src="images/sigma.gif"> deviation from the mean of test statistics distribution, corresponding to a p-value less than <img src="images/3e-7.gif">. This package parallelizes the Monte Carlo generation step on GPU and when running on an NVIDIA GeForce TITAN X against an Intel core 3.0 GHz, provides a speedup of over 400 times.
+Generating the test statistics distribution is a computationally expensive task, especially in traditional scientific fields like particle physics, where a discovery requires a $5\sigma$ deviation from the mean of test statistics distribution, corresponding to a p-value less than $3 \times 10^{-7}$. This package parallelizes the Monte Carlo generation step on GPU and when running on an NVIDIA GeForce TITAN X against an Intel core 3.0 GHz, provides a speedup of over 400 times.
 
 ### 2. Algorithm Overview
 On CPU:
