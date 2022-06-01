@@ -28,24 +28,19 @@ This package parallelizes the Monte Carlo simulation of the test statistics used
     <img src="images/input.png" width="1000">
 </p>
 
-The background Monte Carlo is generated from an exponential distribution <img src="images/exponential.gif">. The signal template is generated from a Gaussian distribution <img src="images/gaussian.gif">. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation proportional to square root of the bin count.
+The background Monte Carlo is generated from an exponential distribution $10^3 \exp{\frac{-x}{100}}$. The signal template is generated from a Gaussian distribution $40 \exp{\left(-\frac{(x-120)^2}{50}\right)}$. The (fake) observed data is obtained from the sum of signal and background templates with Gaussian noise of mean 0 and standard deviation proportional to square root of the bin count.
 
-The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis <img src="images/H0.gif"> (background only) or the alternative hypothesis <img src="images/H1.gif"> (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
+The hypothesis test answers the following question: Is the observed data compatible with the null hypothesis $H_0$ (background only) or the alternative hypothesis $H_1$ (signal+background). The Neyman-Pearson lemma states that the most powerful test statistics is the log likelihood ratio of the two hypotheses given the observed data:
 
-<p align="center">
-    <img src="images/NPratio.gif" >
-</p>
+$$q_0 = 2 \log{\frac{\mathcal{L}(x, H_1)}{\mathcal{L}(x, H_0)}}.$$
 
+In binned histograms, $\mathcal{L}(x, \theta)$ is the Poisson likelihood of the rate parameter $\theta$ given the observed data $x$. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
 
-In binned histograms, <img src="images/L_x_theta.gif"> is the Poisson likelihood of the rate parameter <img src="images/theta.gif"> given the observed data <img src="images/x.gif">. The test statistics for a binned histogram with Neyman-Pearson lemma thus becomes:
+$$ q_0 = 2 \sum_i \log{\frac{f(x_i, \theta_i^1)}{f(x_i, \theta_i^0)}},$$
 
-<p align="center">
-    <img src="images/NPratio_sum.gif" >,
-</p>
 where
-<p align="center">
-    <img src="images/poisson.gif" >,
-</p>
+
+$f(x_i, \theta_i) = \frac{\theta_i^{x_i}e^{-\theta_i}}{x_i!}$
 
 is the Poisson likelihood and <img src="images/i.gif"> is the index of each bin. 
 
